@@ -1,0 +1,23 @@
+---
+title: 框架工具
+description: AI Agent 框架工具索引与工程选型入口。
+---
+
+不要只按流行度选框架。先看你的系统是否需要状态机、工作流、工具权限、人工接管、多 Agent 协作或产品内嵌。
+
+## 已整理框架
+
+| 框架 | 适合场景 |
+| --- | --- |
+| [LangGraph](/docs/frameworks/langgraph) | 状态机、多步骤工作流、可恢复执行。 |
+| [Mastra](/docs/frameworks/mastra) | TypeScript 产品集成、工具编排和 workflow。 |
+
+## 选型问题
+
+看框架前，先把这些问题写清楚：
+
+1. 工作流是线性的、分支的，还是会循环。
+2. 状态是否需要持久化和恢复。
+3. 工具权限是否需要用户确认。
+4. 是否需要把 Agent 嵌入现有产品。
+5. 团队主要使用 Python 还是 TypeScript。

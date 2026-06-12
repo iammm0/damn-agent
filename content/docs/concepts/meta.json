@@ -1,4 +1,4 @@
 {
   "title": "核心概念",
-  "pages": ["agent-loop", "tools-and-memory"]
+  "pages": ["index", "agentic-basics", "agent-loop", "tools-and-memory"]
 }

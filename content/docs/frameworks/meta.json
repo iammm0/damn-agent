@@ -1,4 +1,4 @@
 {
   "title": "框架工具",
-  "pages": ["langgraph", "mastra"]
+  "pages": ["index", "langgraph", "mastra"]
 }

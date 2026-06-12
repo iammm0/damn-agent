@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     template: "%s | Agent Atlas",
   },
   description:
-    "面向开发者的 AI Agent 技术学习文档站，覆盖学习路线、核心概念、工程实践、框架工具和案例拆解。",
+    "面向开发者的 AI Agent 技术学习文档站，覆盖核心概念、工程实践、框架工具和案例拆解。",
 };
 
 export default function RootLayout({
