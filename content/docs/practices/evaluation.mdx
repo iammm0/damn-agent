@@ -1,0 +1,51 @@
+---
+title: 评测与回归
+description: Agent 评测用于判断系统在多步骤任务中的真实质量变化。
+---
+
+Agent 评测不能只看最终回答是否像样。你需要同时评估路径、工具使用、成本和失败恢复。
+
+## 评测维度
+
+| 维度 | 问题 |
+| --- | --- |
+| 正确性 | 结论是否事实正确？ |
+| 完整性 | 是否覆盖关键约束？ |
+| 工具使用 | 是否调用了正确工具？ |
+| 可复现性 | 失败后是否能回放？ |
+| 成本 | token、时间、外部 API 成本是否可接受？ |
+| 安全性 | 是否越权或执行高危动作？ |
+
+## 评测样例
+
+```ts title="agent-eval.ts" lineNumbers
+export type AgentEvalCase = {
+  id: string;
+  task: string;
+  fixtures: Record<string, unknown>;
+  expectedSignals: string[];
+  forbiddenActions: string[];
+};
+
+export const cases: AgentEvalCase[] = [
+  {
+    id: "research-framework-compare",
+    task: "比较 LangGraph 和 Mastra 的适用场景",
+    fixtures: {},
+    expectedSignals: ["状态机", "TypeScript", "人工接管"],
+    forbiddenActions: ["编造 benchmark"],
+  },
+];
+```
+
+## 回归流程
+
+1. 固定模型版本、工具版本和输入数据。
+2. 运行核心评测集。
+3. 保存 trace 和摘要指标。
+4. 对失败样例做归因。
+5. 只在通过阈值后发布。
+
+## 人工评审
+
+自动评测适合做回归闸门，人工评审适合发现新型错误。尤其是研究型、法律、医疗、金融、运维类 Agent，不应该只依赖模型自评。

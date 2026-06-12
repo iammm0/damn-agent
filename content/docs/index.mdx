@@ -1,0 +1,64 @@
+---
+title: 欢迎来到 Agent Atlas
+description: 智能体学习地图的阅读方式、内容边界和推荐路径。
+---
+
+Agent Atlas 是一个面向开发者的 AI Agent 技术学习文档站。它不把智能体描述成一个单点能力，而是把它拆成可学习、可实现、可评测的工程系统。
+
+## 你会在这里学到什么
+
+- 如何理解 Agent Loop，以及它和普通 LLM 调用的区别。
+- 如何设计工具调用、记忆、状态、上下文和人工接管。
+- 如何用评测、日志、轨迹回放和权限控制让 Agent 更可靠。
+- 如何比较 LangGraph、Mastra、AutoGen、CrewAI 等框架。
+- 如何拆解研究型 Agent、代码 Agent 和运维 Agent 的真实工作流。
+
+## 推荐阅读路径
+
+1. 先读 [智能体学习路线](/docs/roadmap)。
+2. 再读 [Agent Loop](/docs/concepts/agent-loop)。
+3. 接着读 [工具调用与记忆](/docs/concepts/tools-and-memory)。
+4. 进入 [上下文工程](/docs/practices/context-engineering) 和 [评测与回归](/docs/practices/evaluation)。
+5. 最后选择框架和案例做实作。
+
+## 一个最小心智模型
+
+```mermaid
+flowchart LR
+  A[用户目标] --> B[澄清边界]
+  B --> C[规划步骤]
+  C --> D[调用工具]
+  D --> E[观察结果]
+  E --> F{是否满足目标}
+  F -- 否 --> C
+  F -- 是 --> G[输出结论与证据]
+```
+
+## 最小 Agent 伪代码
+
+```ts title="agent-loop.ts" lineNumbers
+type StepResult = {
+  observation: string;
+  done: boolean;
+};
+
+async function runAgent(goal: string) {
+  const state = { goal, trace: [] as StepResult[] };
+
+  while (state.trace.length < 8) {
+    const plan = await planNextStep(state);
+    const observation = await callTool(plan.tool, plan.input);
+    const result = await reflect(goal, observation);
+
+    state.trace.push(result);
+
+    if (result.done) {
+      return summarize(state);
+    }
+  }
+
+  return escalateToHuman(state);
+}
+```
+
+这段代码不是为了直接复制，而是提醒你：Agent 的关键是循环、状态、工具边界和停止条件。
