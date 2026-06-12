@@ -306,6 +306,16 @@ export type Resource = {
   type: "论文" | "课程" | "仓库" | "文档" | "工具";
 };
 
+export type RelatedProject = {
+  name: string;
+  description: string;
+  href: string;
+  homepage?: string;
+  language: string;
+  note: string;
+  tags: string[];
+};
+
 export const resources: Resource[] = [
   {
     title: "Agent 工程阅读清单",
@@ -324,6 +334,29 @@ export const resources: Resource[] = [
     description: "从状态管理、工具调用、部署、观测和生态比较主流框架。",
     href: "/frameworks",
     type: "文档",
+  },
+];
+
+export const relatedProjects: RelatedProject[] = [
+  {
+    name: "secbot",
+    description:
+      "授权安全测试工作台，v2 是 TypeScript 终端产品，聚焦安全自动化和授权测试流程。",
+    href: "https://github.com/iammm0/secbot",
+    homepage: "https://secbot.site",
+    language: "TypeScript",
+    note: "不属于 Agent 学习路线主线，可作为安全自动化场景的延伸观察。",
+    tags: ["authorized-testing", "security-automation", "terminal-ui", "mcp"],
+  },
+  {
+    name: "execgo",
+    description:
+      "把上层 agent 的决策可靠、安全、可观测地映射到真实工具与运行环境的执行层项目。",
+    href: "https://github.com/iammm0/execgo",
+    homepage: "https://execgo.site",
+    language: "Go",
+    note: "不作为入门必学框架，可作为 Agent 运行时与工具执行边界的旁路参考。",
+    tags: ["go", "runtime", "tool-execution", "observability"],
   },
 ];
 

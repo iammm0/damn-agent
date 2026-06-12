@@ -6,6 +6,7 @@ import { ConceptCard } from "@/components/concept-card";
 import { FrameworkCard } from "@/components/framework-card";
 import { LearningPath } from "@/components/learning-path";
 import { PageShell } from "@/components/page-shell";
+import { RelatedProjects } from "@/components/related-projects";
 import { ResourceList } from "@/components/resource-list";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ import {
   concepts,
   frameworks,
   learningPath,
+  relatedProjects,
   resources,
   siteConfig,
 } from "@/lib/site";
@@ -126,6 +128,19 @@ export default function Home() {
           <SectionTitle icon={Library} title="资源入口" href="/resources" />
           <ResourceList resources={resources} />
         </div>
+      </section>
+
+      <section className="mt-12 space-y-4">
+        <div className="max-w-3xl space-y-2">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-primary">
+            Related Projects
+          </p>
+          <h2 className="text-xl font-semibold tracking-tight">作者延伸项目</h2>
+          <p className="text-sm leading-6 text-muted-foreground">
+            这些是作者的个人项目，不属于 Agent 技术学习路线主线；如果你对安全自动化、工具执行层和运行环境映射感兴趣，可以作为旁路参考。
+          </p>
+        </div>
+        <RelatedProjects projects={relatedProjects} />
       </section>
     </PageShell>
   );

@@ -138,6 +138,20 @@ Generated directories such as `.next/`, `.source/`, `node_modules/`, and TypeScr
 | `/changelog` | Project and content updates |
 | `/docs` | Fumadocs MDX documentation |
 
+## Related Projects
+
+These repositories are personal projects by the same author. They are intentionally presented as related/extended projects rather than part of the Agent Atlas learning path.
+
+| Project | Description | Link |
+| --- | --- | --- |
+| secbot | Authorized security testing workspace and TypeScript terminal product for security automation scenarios. | [github.com/iammm0/secbot](https://github.com/iammm0/secbot) |
+| execgo | Execution-layer project for mapping upper-level agent decisions to reliable, safe, and observable tools/runtime environments. | [github.com/iammm0/execgo](https://github.com/iammm0/execgo) |
+
+Project sites:
+
+- [secbot.site](https://secbot.site)
+- [execgo.site](https://execgo.site)
+
 ## Content Authoring
 
 Documentation files live in `content/docs`.
