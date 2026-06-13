@@ -1,27 +1,26 @@
 ---
 title: 维护者
-description: Damn Agent 的维护者名单、头像和公开 ID。
+description: Damn Agent 的维护者名单、GitHub ID 和远端协作权限来源。
 ---
 
-本站维护者信息用于标识内容维护责任和项目身份。
+本站维护者名单基于远端 GitHub 仓库 collaborators 接口同步，用于标识内容维护和工程协作责任。
 
-<div className="not-prose my-6 flex max-w-xl items-center gap-4 rounded-lg border bg-card p-4">
-  <img
-    src="/avatars/maintainer-iammm0.jpg"
-    alt="iammm0 的头像"
-    className="size-20 rounded-full border bg-background object-cover"
-  />
-  <div className="min-w-0">
-    <p className="text-sm text-muted-foreground">维护者 ID</p>
-    <p className="font-mono text-xl font-semibold">iammm0</p>
-    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-      Damn Agent 的内容维护者。头像资产位于 <code>/avatars/maintainer-iammm0.jpg</code>。
-    </p>
-  </div>
-</div>
+- 同步时间：2026-06-13
+- 远端仓库：[iammm0/damn-agent](https://github.com/iammm0/damn-agent)
+- 排序规则：管理员在前，其余账号按 GitHub ID 字母序排列。
 
-## 头像资源
+| GitHub ID | 远端权限 | 维护说明 |
+| --- | --- | --- |
+| [iammm0](https://github.com/iammm0) | Admin / Maintain / Push / Triage | 仓库管理员，负责项目配置、内容方向和发布节奏。 |
+| [chagumu-01](https://github.com/chagumu-01) | Push / Triage | 远端协作者，可参与内容与工程维护。 |
+| [JackWinston-coder](https://github.com/JackWinston-coder) | Push / Triage | 远端协作者，可参与内容与工程维护。 |
+| [ormasia](https://github.com/ormasia) | Push / Triage | 远端协作者，可参与内容与工程维护。 |
+| [Riverzen](https://github.com/Riverzen) | Push / Triage | 远端协作者，可参与内容与工程维护。 |
+| [TerryLiang9](https://github.com/TerryLiang9) | Push / Triage | 远端协作者，可参与内容与工程维护。 |
+| [violet5564](https://github.com/violet5564) | Push / Triage | 远端协作者，可参与内容与工程维护。 |
+| [WHUdonic77](https://github.com/WHUdonic77) | Push / Triage | 远端协作者，可参与内容与工程维护。 |
 
-- 原图地址：[/avatars/maintainer-iammm0.jpg](/avatars/maintainer-iammm0.jpg)
-- 维护者 ID：`iammm0`
-- 用途：网站头像、导航品牌头像、维护者名单头像。
+## 维护规则
+
+- 新增或移除远端仓库协作者后，需要重新同步本页。
+- 本页只展示 GitHub ID 和仓库权限，不展示个人头像。
