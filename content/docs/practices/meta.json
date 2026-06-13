@@ -1,4 +1,12 @@
 {
   "title": "工程实践",
-  "pages": ["index", "harness-engineering", "context-engineering", "evaluation"]
+  "pages": [
+    "index",
+    "harness-engineering",
+    "context-engineering",
+    "rag-and-knowledge",
+    "observability",
+    "evaluation",
+    "safety-and-governance"
+  ]
 }

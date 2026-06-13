@@ -47,33 +47,39 @@
 ## Unreleased
 
 发布负责人：@iammm0（微信号待补充）
-发布范围：第一期 Agent 技术学习协作排期调整
+发布范围：第一期 Agent 技术学习目录评估与骨架铺设
 关联 issue：已撤回，暂不创建 GitHub issue
 
 ### 协作者进度
 
 | 协作者 | GitHub ID | 微信号 | 负责板块 | Todo 编号 | 状态 | 本次更新 | 证据 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 排期者 | @iammm0 | 待补充 | 第一期总排期与版本协调 | 待重新规划 | 进行中 | 撤回第一期 GitHub issue 草稿，保留根目录总进度文件和代理协作约定 | `CHANGESLOG.md`, `AGENTS.md` |
+| 排期者 | @iammm0 | 待补充 | 第一期目录评估与骨架铺设 | 待重新规划 | 进行中 | 撤回第一期 GitHub issue 草稿，先铺设网站文档目录，再进入排期和分工 | `content/docs/roadmap/phase-1-directory.mdx` |
 
 ### 内容更新
 
 - 第一版 12 人协作 issue 草稿已撤回，暂不进入 GitHub issue 发布流程。
 - 后续第一期板块拆分、知识范围、交付物和 todo 编号需要重新确认后再发布。
+- 新增第一期目录评估页，用于先判断网站目录是否能承载协作内容。
+- 补齐规划反思、多 Agent、RAG、可观测性、安全治理、框架选型、Coding Agent、运维/浏览器 Agent 等目录入口。
 
 ### 工程更新
 
 - 新增根目录 `AGENTS.md`，明确编码代理和编程助手的项目协作约定。
 - 新增根目录 `CHANGESLOG.md`，作为后续版本发布和协作者进度的总记录。
 - 删除 `.github/ISSUE_DRAFTS/phase-1-agent-learning-plan.md`，撤回待审核的 GitHub issue 正文。
+- 新增 `content/docs/roadmap/` 分组，承载目录评估和后续共建路线。
+- 更新 `content/docs/*/meta.json` 和各分组首页，让新增主题进入站内导航。
 
 ### 风险与阻塞
 
 - GitHub issue 未创建，第一版 issue 草稿已从仓库撤回。
 - 12 位协作者的 GitHub ID、微信号、实际认领板块和排期方式需要重新确认。
+- 当前新增页面多为目录骨架，尚未进入完整正文写作阶段。
 
 ### 下个版本计划
 
 - 重新确认第一期协作方式和是否继续使用 GitHub issue 承载排期。
 - 重新确认是否公开收集微信号，或改用私下汇总后只在 issue 中记录 GitHub ID。
+- 先审核 `content/docs/roadmap/phase-1-directory.mdx` 的目录映射。
 - 新排期确认后再更新 `CHANGESLOG.md` 的协作者进度表。

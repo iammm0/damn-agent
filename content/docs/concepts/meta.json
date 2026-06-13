@@ -1,4 +1,11 @@
 {
   "title": "核心概念",
-  "pages": ["index", "agentic-basics", "agent-loop", "tools-and-memory"]
+  "pages": [
+    "index",
+    "agentic-basics",
+    "agent-loop",
+    "tools-and-memory",
+    "planning-and-reflection",
+    "multi-agent"
+  ]
 }

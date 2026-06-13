@@ -1,4 +1,13 @@
 {
   "title": "框架工具",
-  "pages": ["index", "langgraph", "mastra"]
+  "pages": [
+    "index",
+    "framework-selection",
+    "langgraph",
+    "mastra",
+    "autogen",
+    "crewai",
+    "openai-agents-sdk",
+    "vercel-ai-sdk"
+  ]
 }

@@ -1,4 +1,10 @@
 {
   "title": "案例拆解",
-  "pages": ["index", "claude-code-source-analysis", "research-agent"]
+  "pages": [
+    "index",
+    "claude-code-source-analysis",
+    "research-agent",
+    "coding-agent",
+    "ops-browser-agent"
+  ]
 }
