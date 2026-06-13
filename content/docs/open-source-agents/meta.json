@@ -4,6 +4,8 @@
     "index",
     "evaluation-method",
     "project-pool",
+    "openclaw",
+    "hermes-agent",
     "coding-agents",
     "research-agents",
     "browser-computer-use-agents",
