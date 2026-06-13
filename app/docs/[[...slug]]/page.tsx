@@ -8,6 +8,8 @@ import {
   DocsTitle,
 } from "fumadocs-ui/page";
 import { getMDXComponents } from "@/mdx-components";
+import { DocEditMeta } from "@/components/doc-edit-meta";
+import { resolveDocEditMeta } from "@/lib/doc-edit-meta";
 import { sharedDocsLayoutProps } from "@/lib/docs-layout";
 import { source } from "@/lib/source";
 
@@ -44,6 +46,7 @@ export default async function DocsRoutePage({ params }: DocsRouteProps) {
   }
 
   const MDXContent = page.data.body;
+  const editMeta = resolveDocEditMeta(page.data);
 
   return (
     <DocsLayout
@@ -56,6 +59,7 @@ export default async function DocsRoutePage({ params }: DocsRouteProps) {
         <DocsBody className="prose-code-scroll">
           <MDXContent components={getMDXComponents()} />
         </DocsBody>
+        {editMeta ? <DocEditMeta {...editMeta} /> : null}
       </DocsPage>
     </DocsLayout>
   );
