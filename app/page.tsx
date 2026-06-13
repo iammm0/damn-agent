@@ -47,10 +47,10 @@ export default function Home() {
       <DocsPage toc={page.data.toc} full={page.data.full}>
         <DocsTitle>{page.data.title}</DocsTitle>
         <DocsDescription>{page.data.description}</DocsDescription>
+        {editMeta ? <DocEditMeta {...editMeta} /> : null}
         <DocsBody className="prose-code-scroll">
           <MDXContent components={getMDXComponents()} />
         </DocsBody>
-        {editMeta ? <DocEditMeta {...editMeta} /> : null}
       </DocsPage>
     </DocsLayout>
   );

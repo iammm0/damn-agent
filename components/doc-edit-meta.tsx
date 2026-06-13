@@ -21,7 +21,7 @@ export function DocEditMeta({
   return (
     <aside
       className={cn(
-        "not-prose mt-10 flex flex-col gap-2 border-t pt-4 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1",
+        "not-prose -mt-2 mb-6 flex flex-col gap-2 border-b pb-4 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1",
         className,
       )}
       aria-label="文档编辑信息"
