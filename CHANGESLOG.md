@@ -95,26 +95,28 @@
 ## Unreleased
 
 发布负责人：@iammm0（微信号待补充）
-发布范围：第一期 Agent 技术学习目录评估与骨架铺设
-关联 issue：已撤回，暂不创建 GitHub issue
+发布范围：第一期 Agent 技术学习目录评估、骨架铺设与文章目录 todo 草稿重建
+关联 issue：[GitHub #1](https://github.com/iammm0/damn-agent/issues/1)（草稿：`.github/ISSUE_DRAFTS/phase-1-agent-learning-plan.md`）
 
 ### 协作者进度
 
 | 协作者 | GitHub ID | 微信号 | 负责板块 | Todo 编号 | 状态 | 本次更新 | 证据 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 排期者 | @iammm0 | 待补充 | 第一期目录评估与骨架铺设 | 待重新规划 | 进行中 | 撤回第一期 GitHub issue 草稿，先铺设网站文档目录，再进入排期和分工 | `content/docs/index.mdx` |
+| 排期者 | @iammm0 | 待补充 | 第一期目录评估与文章 todo 排期 | P1-00 至 P1-09 | 进行中 | 重新生成第一期 issue 草稿，按网站文章目录拆出 60 个页面级 todo，并为每个 todo 设置 2 个协作者认领名额 | `.github/ISSUE_DRAFTS/phase-1-agent-learning-plan.md` |
 
 ### 内容更新
 
-- 第一版 12 人协作 issue 草稿已撤回，暂不进入 GitHub issue 发布流程。
-- 后续第一期板块拆分、知识范围、交付物和 todo 编号需要重新确认后再发布。
+- 第一版 12 人协作 issue 草稿已改为按网站文章目录排期，当前重新生成待发布草稿。
+- 新草稿包含 12 位协作者名单，并按首页、内容分组、维护者页和更新记录页拆出 60 个页面级 todo。
+- 每个 todo 固定 2 个协作者选择框，允许同一协作者认领多个 todo，但单个 todo 最多 2 位协作者。
+- 后续第一期知识范围、交付物和 todo 编号以发布后的 GitHub issue 为准。
 - 补齐编程语言基础、规划反思、多 Agent、RAG、可观测性、安全治理、框架选型、开源智能体、Coding Agent、运维/浏览器 Agent 等目录入口。
 
 ### 工程更新
 
 - 新增根目录 `AGENTS.md`，明确编码代理和编程助手的项目协作约定。
 - 新增根目录 `CHANGESLOG.md`，作为后续版本发布和协作者进度的总记录。
-- 删除 `.github/ISSUE_DRAFTS/phase-1-agent-learning-plan.md`，撤回待审核的 GitHub issue 正文。
+- 重新新增 `.github/ISSUE_DRAFTS/phase-1-agent-learning-plan.md`，作为待发布的第一期 GitHub issue 正文。
 - 新增 `content/docs/programming-languages/` 分组，承载 TypeScript、Python、Go、Rust 的 Agent 工程语言基础。
 - 新增 `content/docs/open-source-agents/` 分组，单独承载社区开源智能体项目的评估方法、项目池、分类拆解和具体项目页。
 - 补充 OpenHands、SWE-agent、aider、Open SWE、Plandex、GPT Researcher、Browser Use、Open Interpreter、OpenClaw、Hermes Agent 等具体开源智能体入口。
@@ -122,15 +124,15 @@
 
 ### 风险与阻塞
 
-- GitHub issue 未创建，第一版 issue 草稿已从仓库撤回。
-- 12 位协作者的 GitHub ID、微信号、实际认领板块和排期方式需要重新确认。
+- GitHub issue #1 已创建，后续仍需要在 issue 内跟进认领、阻塞、延期和交付证据。
+- 12 位协作者的 GitHub ID 已进入草稿，但微信号、实际认领 todo 和交付时间需要继续确认。
 - 当前新增页面多为目录骨架，尚未进入完整正文写作阶段。
 - 开源智能体项目已进入具体项目页阶段，但仍需对每个项目继续补充许可证、运行路径、仓库结构和可复现实验。
 - 编程语言板块已确定优先级，但各语言页仍需补充示例代码、学习路径和项目阅读材料。
 
 ### 下个版本计划
 
-- 重新确认第一期协作方式和是否继续使用 GitHub issue 承载排期。
+- 跟进 GitHub #1 的 todo 认领，把协作者、交付时间和证据链接同步回 `CHANGESLOG.md`。
 - 重新确认是否公开收集微信号，或改用私下汇总后只在 issue 中记录 GitHub ID。
 - 先审核当前文档站顶层目录是否覆盖第一期学习范围。
 - 审核 TypeScript、Python、Go、Rust 的优先级和正文深度边界。
