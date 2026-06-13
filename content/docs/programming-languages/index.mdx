@@ -1,0 +1,29 @@
+---
+title: 编程语言基础
+description: 面向 AI Agent 工程的语言知识储备：TypeScript 优先，Python 其次，Go 和 Rust 面向 AI infra。
+---
+
+这个板块不做普通语法教程，而是整理开发智能体系统需要的编程语言基础。重点顺序是 TypeScript、Python、Go、Rust。
+
+## 学习优先级
+
+| 优先级 | 语言 | 为什么重要 |
+| --- | --- | --- |
+| 1 | [TypeScript](/docs/programming-languages/typescript) | Agent 产品、Web UI、工具编排、SDK 集成、Vercel AI SDK、Mastra、MCP client/server 都高度依赖 TypeScript 生态。 |
+| 2 | [Python](/docs/programming-languages/python) | 模型实验、RAG、数据处理、评测、LangGraph、LlamaIndex、AutoGen、CrewAI 等生态更成熟。 |
+| 3 | [Go](/docs/programming-languages/go) | 适合 AI infra 中的服务端、任务调度、队列、网关、爬虫调度、节点控制面和高并发工具服务。 |
+| 4 | [Rust](/docs/programming-languages/rust) | 适合 sandbox、runtime、CLI、解析器、向量/检索底层、高性能安全边界和跨平台工具。 |
+
+## 这个板块解决什么
+
+- 协作者进入 Agent 项目前，需要知道每门语言该掌握到什么深度。
+- 不同板块分工时，需要知道前端、后端、工具、RAG、评测、运行时、infra 分别偏向哪种语言。
+- 拆解开源智能体项目时，需要能读懂 TypeScript、Python、Go、Rust 的常见工程结构。
+- 做技术选型时，需要知道语言生态和部署形态的差异，而不是只按个人熟悉度选。
+
+## 建设原则
+
+- TypeScript 是第一编程语言，优先覆盖产品化 Agent、工具调用、UI 和 SDK 集成。
+- Python 是第二编程语言，优先覆盖模型、数据、检索、评测和研究原型。
+- Go 和 Rust 不作为第一期业务功能首选语言，但需要作为 AI infra 推荐语言保留基础板块。
+- 每个语言页都围绕 Agent 工程讲模块系统、异步、类型、测试、包管理、部署、常见项目结构和适用边界。

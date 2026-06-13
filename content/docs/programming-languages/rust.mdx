@@ -1,0 +1,38 @@
+---
+title: Rust
+description: Rust 是 AI infra 推荐语言之一，重点用于 sandbox、runtime、CLI、解析器、安全边界和高性能底层组件。
+---
+
+Rust 适合承担 Agent 系统中的底层运行时、安全边界和高性能工具，而不是一开始就用来写所有业务流程。它的价值在于内存安全、性能、跨平台分发和对系统边界的强约束。
+
+## 需要掌握的基础
+
+- 所有权、借用、生命周期和错误处理。
+- trait、enum、pattern matching、generic。
+- async runtime：tokio、async trait、timeout、cancel。
+- CLI：clap、config、日志、跨平台发布。
+- 解析和执行：parser、AST、sandbox、进程管理。
+- FFI 和 WASM：和 Node/Python/浏览器的边界。
+- 工程化：cargo、test、bench、feature flag。
+
+## Agent infra 重点
+
+- Sandbox 和受限执行环境。
+- 高性能 CLI、文件索引、代码解析、diff、搜索。
+- 浏览器或桌面自动化底层适配器。
+- 本地 runtime、插件系统、权限边界。
+- 向量检索、文本处理和低延迟工具组件。
+
+## 适合承载的内容
+
+- 安全敏感运行时。
+- 跨平台 CLI 和本地工具。
+- 高性能解析器、索引器和执行器。
+- 需要强安全边界的 Agent infra 组件。
+
+## 后续应补内容
+
+- Rust CLI tool 的最小结构。
+- sandbox/process runner 的安全边界说明。
+- Rust 与 TypeScript/Python 的 FFI 或子进程协作模式。
+- 适合 Rust 重写的 Agent infra 组件判断清单。

@@ -1,0 +1,38 @@
+---
+title: TypeScript
+description: TypeScript 是智能体工程第一编程语言，重点用于产品化 Agent、工具调用、UI、SDK 集成和全栈应用。
+---
+
+TypeScript 是本站第一优先级语言。原因不是语法流行，而是当前智能体产品化的大部分关键边界都落在 TypeScript 生态里：Web UI、流式交互、工具调用展示、Server Actions、API routes、MCP client/server、Vercel AI SDK、Mastra、前端状态和部署平台集成。
+
+## 需要掌握的基础
+
+- 类型系统：interface、type、union、generic、discriminated union、type narrowing。
+- 异步模型：Promise、async/await、stream、AbortController、并发和取消。
+- 模块系统：ESM、package exports、monorepo、路径别名、server/client boundary。
+- Runtime：Node.js、Edge runtime、Bun、浏览器环境的差异。
+- Schema：Zod、JSON Schema、工具参数校验、结构化输出类型。
+- 测试：unit test、integration test、mock tool、fixture、snapshot。
+- 工程化：pnpm、tsconfig、eslint、formatter、build、CI。
+
+## Agent 工程重点
+
+- 工具调用 schema 如何和类型系统绑定。
+- Streaming UI 如何表达模型输出、工具调用、暂停、失败和人工确认。
+- Agent state 如何在 server、client、database 和 URL 之间传递。
+- 如何用 TypeScript 写 MCP server、MCP client、HTTP tool 和 browser tool。
+- 如何把 trace、message、tool result、artifact 设计成可演进的数据结构。
+
+## 适合承载的内容
+
+- 产品化 Agent 前端和后端。
+- Chat UI、任务进度、trace viewer、人工确认界面。
+- 工具编排、API route、server action、workflow glue code。
+- 面向 Web 平台的开源智能体项目拆解。
+
+## 后续应补内容
+
+- Agent 工具 schema 的 TypeScript 示例。
+- Vercel AI SDK streaming + tool calling 最小例子。
+- MCP TypeScript server/client 示例。
+- Agent UI message 类型设计案例。

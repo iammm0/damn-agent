@@ -1,0 +1,37 @@
+---
+title: Go
+description: Go 是 AI infra 推荐语言之一，重点用于服务端、调度、队列、节点控制面、网关和高并发工具服务。
+---
+
+Go 适合放在 AI infra 层，而不是第一期所有 Agent 业务逻辑的默认语言。它的优势在于部署简单、并发模型稳定、标准库扎实、服务端工程成熟，适合承载调度、网关、节点控制面和高并发工具服务。
+
+## 需要掌握的基础
+
+- 类型和接口：struct、interface、泛型、错误返回。
+- 并发：goroutine、channel、context、cancel、timeout。
+- 服务端：net/http、middleware、gRPC、OpenAPI。
+- 数据层：SQL、事务、连接池、迁移。
+- 队列和任务：worker、retry、dead letter、rate limit。
+- 工程化：module、testing、benchmark、pprof、Docker。
+
+## Agent infra 重点
+
+- 任务调度器和队列 worker。
+- Agent tool gateway、MCP proxy、HTTP/gRPC 工具服务。
+- 节点注册、健康检查、心跳、任务下发、状态回传。
+- 爬虫任务控制面、账号池、节点池和并发限流。
+- 日志、metrics、trace 和运维诊断接口。
+
+## 适合承载的内容
+
+- 控制面服务。
+- 调度和队列系统。
+- 高并发工具服务。
+- 节点管理和远程执行控制。
+
+## 后续应补内容
+
+- Go worker + queue 的任务调度示例。
+- Go tool gateway 的接口设计。
+- context cancel 和 timeout 在长任务 Agent 中的用法。
+- Go 服务如何和 TypeScript/Python Agent 层协作。

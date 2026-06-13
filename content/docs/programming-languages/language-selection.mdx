@@ -1,0 +1,31 @@
+---
+title: 语言选型方法
+description: 按 Agent 产品、模型实验、工具服务、运行时和 AI infra 判断 TypeScript、Python、Go、Rust 的适用边界。
+---
+
+语言选型先看系统边界，而不是先看个人偏好。Agent 项目通常同时包含产品 UI、模型调用、工具执行、任务调度、检索系统、评测系统和运行时隔离，不同层的语言选择可以不同。
+
+## 推荐分层
+
+| 系统层 | 推荐语言 | 说明 |
+| --- | --- | --- |
+| 产品 UI 和交互 | TypeScript | React、Next.js、Vercel AI SDK、streaming UI、工具调用展示和人工确认体验。 |
+| Agent 编排和产品后端 | TypeScript 优先，Python 次之 | 如果产品主栈是 Web/Node，优先 TypeScript；如果重模型实验和图编排，可选 Python。 |
+| RAG、评测和数据处理 | Python 优先 | 文档处理、embedding、rerank、notebook、评测脚本和 ML 生态更完整。 |
+| 工具服务和调度控制面 | Go | 高并发服务、队列消费、节点管理、HTTP/gRPC 服务和部署运维更直接。 |
+| Sandbox、runtime、CLI 和安全边界 | Rust | 内存安全、性能、跨平台分发和底层解析场景更强。 |
+
+## 决策问题
+
+1. 这个模块是面向用户交互、模型实验、后台服务还是运行时底层。
+2. 是否需要强类型约束工具 schema 和 UI 状态。
+3. 是否需要大量调用 ML、数据处理或检索生态。
+4. 是否对并发、部署体积、启动速度和运维成本敏感。
+5. 是否涉及 sandbox、权限隔离、解析器或跨平台 CLI。
+
+## 不建议的做法
+
+- 不要因为 Python 生态强，就把产品 UI 和所有工具服务都写成 Python。
+- 不要因为 TypeScript 适合产品，就忽略 Python 在 RAG、评测和模型实验中的效率。
+- 不要过早用 Rust 重写业务逻辑，除非确实有运行时、安全或性能边界。
+- 不要把 Go/Rust 当作协作者第一期必须精通的语言，它们应作为 AI infra 能力储备逐步补齐。

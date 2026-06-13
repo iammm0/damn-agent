@@ -61,7 +61,7 @@
 - 第一版 12 人协作 issue 草稿已撤回，暂不进入 GitHub issue 发布流程。
 - 后续第一期板块拆分、知识范围、交付物和 todo 编号需要重新确认后再发布。
 - 新增第一期目录评估页，用于先判断网站目录是否能承载协作内容。
-- 补齐规划反思、多 Agent、RAG、可观测性、安全治理、框架选型、开源智能体、Coding Agent、运维/浏览器 Agent 等目录入口。
+- 补齐编程语言基础、规划反思、多 Agent、RAG、可观测性、安全治理、框架选型、开源智能体、Coding Agent、运维/浏览器 Agent 等目录入口。
 
 ### 工程更新
 
@@ -69,6 +69,7 @@
 - 新增根目录 `CHANGESLOG.md`，作为后续版本发布和协作者进度的总记录。
 - 删除 `.github/ISSUE_DRAFTS/phase-1-agent-learning-plan.md`，撤回待审核的 GitHub issue 正文。
 - 新增 `content/docs/roadmap/` 分组，承载目录评估和后续共建路线。
+- 新增 `content/docs/programming-languages/` 分组，承载 TypeScript、Python、Go、Rust 的 Agent 工程语言基础。
 - 新增 `content/docs/open-source-agents/` 分组，单独承载社区开源智能体项目的评估方法、项目池和分类拆解。
 - 更新 `content/docs/*/meta.json` 和各分组首页，让新增主题进入站内导航。
 
@@ -78,11 +79,13 @@
 - 12 位协作者的 GitHub ID、微信号、实际认领板块和排期方式需要重新确认。
 - 当前新增页面多为目录骨架，尚未进入完整正文写作阶段。
 - 开源智能体项目清单尚未逐项验源，暂不写具体项目质量结论。
+- 编程语言板块已确定优先级，但各语言页仍需补充示例代码、学习路径和项目阅读材料。
 
 ### 下个版本计划
 
 - 重新确认第一期协作方式和是否继续使用 GitHub issue 承载排期。
 - 重新确认是否公开收集微信号，或改用私下汇总后只在 issue 中记录 GitHub ID。
 - 先审核 `content/docs/roadmap/phase-1-directory.mdx` 的目录映射。
+- 审核 TypeScript、Python、Go、Rust 的优先级和正文深度边界。
 - 确认开源智能体板块先按分类维护，还是为每个重点项目单独建页。
 - 新排期确认后再更新 `CHANGESLOG.md` 的协作者进度表。
