@@ -150,4 +150,10 @@
   .prose-code-scroll pre {
     overflow-x: auto;
   }
+
+  .mermaid-diagram svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
 }

@@ -1,3 +1,4 @@
+import { CodePreview } from "@/components/code-preview";
 import { cn } from "@/lib/utils";
 
 type CodeCompareProps = {
@@ -6,6 +7,7 @@ type CodeCompareProps = {
   before: string;
   after: string;
   language?: string;
+  showLineNumbers?: boolean;
   className?: string;
 };
 
@@ -14,46 +16,26 @@ export function CodeCompare({
   afterTitle = "After",
   before,
   after,
-  language = "ts",
+  language = "typescript",
+  showLineNumbers = true,
   className,
 }: CodeCompareProps) {
   return (
-    <div className={cn("grid gap-4 md:grid-cols-2", className)}>
-      <CodePanel title={beforeTitle} code={before} language={language} tone="muted" />
-      <CodePanel title={afterTitle} code={after} language={language} tone="primary" />
+    <div className={cn("not-prose grid gap-4 md:grid-cols-2", className)}>
+      <CodePreview
+        code={before}
+        lang={language}
+        title={beforeTitle}
+        showLineNumbers={showLineNumbers}
+        collapsible={false}
+      />
+      <CodePreview
+        code={after}
+        lang={language}
+        title={afterTitle}
+        showLineNumbers={showLineNumbers}
+        collapsible={false}
+      />
     </div>
-  );
-}
-
-function CodePanel({
-  title,
-  code,
-  language,
-  tone,
-}: {
-  title: string;
-  code: string;
-  language: string;
-  tone: "muted" | "primary";
-}) {
-  return (
-    <figure className="overflow-hidden rounded-lg border bg-card">
-      <figcaption className="flex items-center justify-between border-b px-4 py-2 text-sm">
-        <span className="font-medium">{title}</span>
-        <span
-          className={cn(
-            "rounded-md px-2 py-1 font-mono text-[11px]",
-            tone === "primary"
-              ? "bg-primary/10 text-primary"
-              : "bg-muted text-muted-foreground",
-          )}
-        >
-          {language}
-        </span>
-      </figcaption>
-      <pre className="overflow-x-auto p-4 text-sm leading-6">
-        <code>{code.trim()}</code>
-      </pre>
-    </figure>
   );
 }

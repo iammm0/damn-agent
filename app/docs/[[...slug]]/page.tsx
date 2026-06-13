@@ -7,7 +7,8 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/page";
-import { SiteBrand } from "@/components/site-brand";
+import { getMDXComponents } from "@/mdx-components";
+import { sharedDocsLayoutProps } from "@/lib/docs-layout";
 import { source } from "@/lib/source";
 
 type DocsRouteProps = {
@@ -47,21 +48,13 @@ export default async function DocsRoutePage({ params }: DocsRouteProps) {
   return (
     <DocsLayout
       tree={source.getPageTree()}
-      nav={{
-        title: <SiteBrand />,
-      }}
-      sidebar={{
-        enabled: true,
-      }}
-      themeSwitch={{
-        enabled: true,
-      }}
+      {...sharedDocsLayoutProps}
     >
       <DocsPage toc={page.data.toc} full={page.data.full}>
         <DocsTitle>{page.data.title}</DocsTitle>
         <DocsDescription>{page.data.description}</DocsDescription>
         <DocsBody className="prose-code-scroll">
-          <MDXContent />
+          <MDXContent components={getMDXComponents()} />
         </DocsBody>
       </DocsPage>
     </DocsLayout>
