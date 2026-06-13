@@ -1,6 +1,6 @@
 export const siteConfig = {
-  name: "Agent Atlas",
-  cnName: "智能体学习地图",
+  name: "Damn Agent",
+  cnName: "智能体工程文档",
   description:
     "面向开发者的 AI Agent 技术学习文档站，系统梳理概念、工程实践、框架工具和案例拆解。",
 };

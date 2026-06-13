@@ -16,10 +16,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://agent-atlas.local"),
+  metadataBase: new URL("https://damnagent.org"),
   title: {
-    default: "Agent Atlas | 智能体学习地图",
-    template: "%s | Agent Atlas",
+    default: "Damn Agent | 智能体工程文档",
+    template: "%s | Damn Agent",
   },
   description:
     "面向开发者的 AI Agent 技术学习文档站，覆盖核心概念、工程实践、框架工具和案例拆解。",
