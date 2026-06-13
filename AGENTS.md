@@ -39,6 +39,8 @@ pnpm exec tsc --noEmit
 pnpm build
 ```
 
+维护者页依赖 GitHub collaborators 接口，构建或本地预览前请配置 `GITHUB_TOKEN`（可用 `gh auth token` 获取）。
+
 修改文档或页面后，至少运行与改动风险匹配的检查。只改 Markdown/MDX 文案时可以优先运行 `pnpm lint`；改到路由、组件、构建配置时运行 TypeScript 和 build。
 
 ## Git 约定

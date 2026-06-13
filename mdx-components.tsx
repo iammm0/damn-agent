@@ -4,6 +4,7 @@ import { CodeCompare } from "@/components/code-compare";
 import { CodePreview } from "@/components/code-preview";
 import { CodePreviewTabs } from "@/components/code-preview-tabs";
 import { Flowchart } from "@/components/flowchart";
+import { MaintainersSync } from "@/components/maintainers-sync";
 import { Mermaid } from "@/components/mermaid";
 
 export function getMDXComponents(components?: MDXComponents): MDXComponents {
@@ -14,6 +15,7 @@ export function getMDXComponents(components?: MDXComponents): MDXComponents {
     CodeCompare,
     Mermaid,
     Flowchart,
+    MaintainersSync,
     ...components,
   };
 }

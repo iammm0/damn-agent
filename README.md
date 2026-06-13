@@ -65,6 +65,13 @@ pnpm install
 pnpm dev
 ```
 
+维护者页会从 GitHub collaborators 接口同步协作者信息，需先配置 `GITHUB_TOKEN`：
+
+```bash
+export GITHUB_TOKEN="$(gh auth token)"
+pnpm dev
+```
+
 Open:
 
 ```text
