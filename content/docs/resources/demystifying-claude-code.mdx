@@ -1,0 +1,52 @@
+---
+title: 《Demystifying Claude Code v1.8》
+description: 拆解 Claude Code 查询引擎、工具系统、Bash 安全、Agent 工具、Hook、MCP 与扩展设计。
+---
+
+《Demystifying Claude Code v1.8》是本站案例拆解层的主要参考书。它把 Claude Code 从终端 UI 到查询引擎、工具系统、安全机制和扩展体系串成一条可分析的工程链路。
+
+| 属性 | 内容 |
+| --- | --- |
+| 页数 | 196 |
+| 下载 | [PDF](/resources/books/demystifying-claude-code-v1.8.pdf) |
+| 主要对应页面 | [Claude Code 源码解析](/docs/cases/claude-code-source-analysis) |
+
+## 这本书解决什么
+
+- 说明代码 Agent 产品的多层架构，而不只停留在 prompt 技巧。
+- 拆解查询引擎如何承载 Agent Loop、流式事件和 tool call。
+- 分析统一工具接口、专用文件工具和 Bash 安全边界。
+- 介绍 Hook、MCP、子 Agent、上下文优化和性能设计。
+
+## 推荐章节与主题
+
+| 主题 | 在站内的用途 | 参考页码 |
+| --- | --- | --- |
+| 架构总览 | UI、命令层、查询引擎、工具、安全、扩展 | pp. 183-184 |
+| 查询引擎 | 消息处理、流式、重试、token 预算、stop reason | pp. 62-69 |
+| 工具系统 | 统一接口、验证、Hook、权限、结果格式化 | pp. 83-87 |
+| 专用文件工具 | Read/Write/Edit 与 Bash 的分工 | pp. 95-101 |
+| 子 Agent | 并行、专长分工、成本与冲突 | pp. 150-154 |
+| 上下文与性能 | 压缩、缓存、延迟加载、截断 | pp. 66-69；pp. 154-180 |
+| 流式调度 | 体验与执行重叠、并行准备 | pp. 154-157 |
+
+## 阅读顺序建议
+
+1. 先读架构总览和查询引擎，建立 Agent Loop 中心视角。
+2. 再读工具系统和文件工具，理解为什么不用 Bash 包打天下。
+3. 然后读子 Agent、Hook、MCP，看扩展边界。
+4. 最后读上下文与性能，把「省 token」当成架构能力。
+
+阅读前建议先有 [《Claude Code Harness Engineering》](/docs/resources/harness-engineering-book) 的 Session/Harness/Sandbox 概念；本书更贴近具体产品实现。
+
+## 站内已引用内容
+
+- [Claude Code 源码解析](/docs/cases/claude-code-source-analysis)：查询引擎、工具系统、安全、Hook、MCP、多 Agent、上下文优化。
+- [智能体基础](/docs/concepts/agentic-basics)：统一工具接口与 MCP。
+- [结构化输出与工具调用](/docs/model-basics/structured-output)：工具 schema 与编排层责任边界。
+
+## 使用注意
+
+- 本书对应 Claude Code v1.8 视角，具体实现可能随版本演进。
+- 适合学设计取舍和模块边界，不适合逐行复刻源码。
+- 与 Harness 书对照：Harness 书讲构件拆分，本书讲产品里如何落地。

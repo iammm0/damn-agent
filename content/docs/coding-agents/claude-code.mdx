@@ -1,0 +1,71 @@
+---
+title: Claude Code
+description: Anthropic 终端编码 Agent 的产品定位、工具系统、扩展机制与工程特点。
+---
+
+Claude Code 是 Anthropic 推出的终端编码 Agent（Coding Agent）。它把 Agent Loop 嵌进开发者日常终端工作流，让模型通过专用工具读改文件、执行命令、搜索代码库，并支持子 Agent、Hook 和 MCP 扩展。
+
+## 基础信息
+
+| 字段 | 信息 |
+| --- | --- |
+| 厂商 | Anthropic |
+| 官方文档 | [Claude Code Overview](https://docs.anthropic.com/en/docs/claude-code/overview) |
+| 主要入口 | 终端 CLI |
+| 典型用户 | 在本地仓库里做探索、修改、测试和重构的开发者 |
+| 本站深读 | [Claude Code 源码解析](/docs/cases/claude-code-source-analysis) |
+
+## 一句话定位
+
+Claude Code 适合作为「终端优先的编码 Agent 产品」样本：它不是单纯的聊天补全，而是围绕查询引擎、统一工具接口和权限系统组织出来的工程产品。
+
+## 产品形态
+
+- **终端 UI**：基于 React + Ink 的 CLI 交互，支持流式输出和斜杠命令。
+- **Agent Loop**：用户输入触发多轮「推理 → 工具调用 → 观察结果」循环。
+- **专用文件工具**：Read、Write、Edit、Grep 等，与 Bash 分工明确。
+- **子 Agent**：主 Agent 可派发隔离上下文的子任务执行者。
+- **扩展**：Hook 注入业务逻辑，MCP 接入外部工具和服务。
+- **项目记忆**：通过 `CLAUDE.md` 等约定文件注入仓库级上下文。
+
+## 值得关注的工程点
+
+| 主题 | 为什么重要 |
+| --- | --- |
+| 查询引擎 | 承载消息处理、流式事件、tool call 和 stop reason |
+| 统一工具链路 | 查找、校验、Hook、权限、执行、格式化结果 |
+| Bash 安全 | 高风险命令检测、沙箱、超时和输出截断 |
+| 上下文预算 | 压缩、缓存、延迟加载和工具结果截断 |
+| Harness 架构 | Session、无状态编排、隔离执行的分工 |
+
+这些主题在站内已有较完整的梳理：[Harness 工程构件](/docs/practices/harness-engineering)、[Claude Code 源码解析](/docs/cases/claude-code-source-analysis)。
+
+## 优势与边界
+
+**适合：**
+
+- 在真实本地仓库里做跨文件修改和命令验证。
+- 学习编码 Agent 的工具设计、权限和扩展机制。
+- 需要 MCP、Hook 和子 Agent 等较完整扩展面的团队。
+
+**注意：**
+
+- 终端 Agent 对权限、审计和误操作防护要求高，不能只看生成质量。
+- 产品能力随版本迭代快，应以官方文档和当前行为为准。
+- 深拆实现细节需结合源码观察或逆向资料，本站案例页提供工程化转述。
+
+## 与 Codex、Cursor 的对比维度
+
+| 维度 | Claude Code |
+| --- | --- |
+| 主战场 | 终端 + 本地仓库 |
+| 上下文 | 打开文件、搜索、项目说明文件 |
+| 扩展 | Hook、MCP、子 Agent |
+| 学习资料 | 本站有三本 PDF 和源码解析案例 |
+
+## 延伸阅读
+
+- [Claude Code 源码解析](/docs/cases/claude-code-source-analysis)
+- [《Claude Code Harness Engineering》](/docs/resources/harness-engineering-book)
+- [《Demystifying Claude Code v1.8》](/docs/resources/demystifying-claude-code)
+- [Harness 工程构件](/docs/practices/harness-engineering)

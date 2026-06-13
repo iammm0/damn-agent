@@ -4,7 +4,6 @@
     "index",
     "claude-code-source-analysis",
     "research-agent",
-    "coding-agent",
-    "ops-browser-agent"
+    "coding-agent"
   ]
 }

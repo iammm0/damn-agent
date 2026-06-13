@@ -1,0 +1,42 @@
+---
+title: aider
+description: aider 作为终端 AI pair programming 工具的 repo map、git 集成、多文件编辑和交互体验拆解。
+---
+
+aider 是终端内的开源 AI pair programming 工具。它更接近“开发者和 Agent 共同在本地仓库里修改代码”的体验，而不是后台异步完成整个 issue。
+
+## 基础核验
+
+| 字段 | 信息 |
+| --- | --- |
+| 最近核验 | 2026-06-13 |
+| 官方站点 | [aider.chat](https://aider.chat/) |
+| 官方 GitHub 组织 | [Aider-AI](https://github.com/Aider-AI) |
+| 官方仓库 | [Aider-AI/aider](https://github.com/Aider-AI/aider) |
+| 分类 | 代码智能体 / 终端 pair programming |
+| 许可证 | Apache-2.0 |
+
+## 一句话定位
+
+aider 适合学习“人机协作式 Coding Agent”如何在终端里读仓库、维护上下文、修改多个文件、跟踪 git diff，并把开发者留在控制回路中。
+
+## 值得学习的工程点
+
+- 终端优先：不依赖大型 Web UI，适合本地仓库和 CLI 工作流。
+- repo map：重点不是把整个仓库塞进上下文，而是构建足够有用的代码地图。
+- git 集成：代码修改天然落在 diff、commit 和 review 流程里。
+- 多模型支持：通过模型适配层连接不同 LLM provider。
+- 交互式节奏：开发者可以逐步确认、补充上下文和调整方向。
+
+## 不适合直接照搬的地方
+
+- pair programming 不等于全自动工程师，长任务仍需要人为拆分和验证。
+- 终端工具对非工程用户不够友好，产品化时需要额外 UI 和任务状态设计。
+- repo map 的效果依赖语言、项目结构和代码索引质量。
+
+## 后续深拆问题
+
+- aider 如何选择进入上下文的文件和符号。
+- repo map 如何影响跨文件修改质量。
+- 它如何处理 git diff、commit 和用户未提交改动。
+- 它适合哪些任务，不适合哪些任务。

@@ -1,4 +1,9 @@
 {
   "title": "资源清单",
-  "pages": ["index", "books"]
+  "pages": [
+    "overview",
+    "agentic-design-patterns",
+    "harness-engineering-book",
+    "demystifying-claude-code"
+  ]
 }

@@ -1,0 +1,12 @@
+{
+  "title": "模型基础知识",
+  "pages": [
+    "index",
+    "llm-overview",
+    "transformer-basics",
+    "tokens-and-context",
+    "inference-and-prompting",
+    "structured-output",
+    "model-selection"
+  ]
+}

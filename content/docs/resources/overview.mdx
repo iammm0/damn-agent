@@ -1,0 +1,56 @@
+---
+title: 资源总览
+description: 资料类型、维护原则、书目索引和本站引用规则。
+---
+
+资源总览与每本书介绍页同级，共同组成「资源清单」板块。本页汇总资料类型、维护原则、书目索引和全站引用规则。
+
+## 推荐资源类型
+
+| 类型 | 用途 |
+| --- | --- |
+| 书籍 / 长文 | 建立模式、工程边界和案例脉络 |
+| 论文 | 理解方法来源和限制 |
+| 框架文档 | 查询 API、部署和最佳实践 |
+| 案例仓库 | 学习真实目录结构和测试方式 |
+| 评测资料 | 构建回归集和质量指标 |
+| 运维资料 | 设计日志、追踪、成本和权限 |
+
+## 当前书目
+
+| 资料 | 页数 | 介绍页 | 下载 |
+| --- | ---: | --- | --- |
+| 《智能体设计模式》 | 298 | [查看](/docs/resources/agentic-design-patterns) | [PDF](/resources/books/agentic-design-patterns-chinese.pdf) |
+| 《Claude Code Harness Engineering：从入门到实战》 | 163 | [查看](/docs/resources/harness-engineering-book) | [PDF](/resources/books/harness-engineering-book.pdf) |
+| 《Demystifying Claude Code v1.8》 | 196 | [查看](/docs/resources/demystifying-claude-code) | [PDF](/resources/books/demystifying-claude-code-v1.8.pdf) |
+
+## 与站内分析页的映射
+
+| 资料 | 主要沉淀页面 |
+| --- | --- |
+| 《智能体设计模式》 | [智能体基础](/docs/concepts/agentic-basics) |
+| 《Claude Code Harness Engineering》 | [Harness 工程构件](/docs/practices/harness-engineering) |
+| 《Demystifying Claude Code v1.8》 | [Claude Code 源码解析](/docs/cases/claude-code-source-analysis) |
+
+三本资料在 [智能体基础](/docs/concepts/agentic-basics) 中也被放在同一张学习地图里：先读模式，再补 Harness 工程边界，最后映射到 Claude Code 源码实践。
+
+## 维护原则
+
+- 记录资料适合哪个学习阶段，而不是只堆链接。
+- 标注是否需要付费、登录或特定运行环境。
+- 对高风险领域保留更新时间和核验记录。
+- 避免只收藏标题党文章；优先可复核、可反查页码的资料。
+- 每本书单独维护介绍页，新增书目时同步更新本页索引表。
+
+## 引用规则
+
+本站以结构化转述为主，不做大段原文搬运：
+
+1. 短引句紧跟「来源：书名，p. 页码」。
+2. 表格和段落中的工程结论标注页码范围。
+3. 后续扩写优先增加页码出处，而不是增加长引用。
+4. 读者应通过书籍页下载 PDF，再按页码回到原文核对。
+
+## 后续扩展
+
+资源清单可按学习阶段过滤：入门、工程化、框架、评测、部署、案例。新增书籍时，在 `meta.json` 注册独立子页，并回本页更新书目表。

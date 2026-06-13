@@ -1,0 +1,69 @@
+---
+title: Cursor
+description: AI 原生 IDE 的产品定位、Agent/Composer 模式与代码库上下文工程。
+---
+
+Cursor 是基于 VS Code 的 AI 原生 IDE（AI-native IDE）。它把代码补全、对话、Agent 和 Composer 嵌进编辑体验，是当前使用最广的「编辑器内编码 Agent」产品之一。
+
+## 基础信息
+
+| 字段 | 信息 |
+| --- | --- |
+| 厂商 | Cursor |
+| 官方站点 | [cursor.com](https://cursor.com) |
+| 主要入口 | 桌面 IDE（基于 VS Code 分支） |
+| 典型用户 | 希望在写代码同时调用 Agent、少切换工具的开发者 |
+
+## 一句话定位
+
+Cursor 适合作为「编辑器即 Agent 运行时」的样本：代码库索引、打开文件、diff 预览和终端操作都发生在同一 IDE 里，产品体验比独立 CLI Agent 更贴近日常写代码流程。
+
+## 产品形态
+
+- **Tab 补全**：行级/块级代码补全，低延迟嵌入输入流程。
+- **Chat**：针对选中代码、文件或代码库提问，带 @ 引用上下文。
+- **Agent 模式**：多步自主任务，可读改文件、跑终端命令、浏览相关代码。
+- **Composer**：面向多文件改动的编排式编辑，适合功能开发和重构。
+- **代码库索引**：对仓库做语义索引，支撑跨文件理解和检索。
+- **规则与记忆**：通过项目规则（如 `.cursor/rules`）和用户级配置约束 Agent 行为。
+- **MCP 集成**：可接入外部工具和数据源，扩展 Agent 能力边界。
+
+## 值得关注的工程点
+
+| 主题 | 为什么重要 |
+| --- | --- |
+| 上下文装配 | @ 文件、@ 文件夹、@ 代码库如何进入 prompt |
+| 编辑器内 diff | 改动预览、接受/拒绝、局部应用 |
+| 索引与检索 | 大仓库下如何找相关符号和文件 |
+| Agent 与 Composer 分工 | 探索式任务 vs 多文件实现任务 |
+| 规则系统 | 如何把团队规范注入 Agent，而不是每次手写 |
+
+## 优势与边界
+
+**适合：**
+
+- 希望 Agent 和手写代码在同一界面无缝切换的开发者。
+- 多文件功能开发、重构和代码库问答场景。
+- 团队希望用规则文件统一 Agent 风格和工程约束。
+
+**注意：**
+
+- IDE Agent 容易让人低估副作用：自动改文件、跑命令前仍需权限意识。
+- 索引质量和模型能力共同决定跨文件理解效果，大单体仓库要实测。
+- 与 Claude Code、Codex CLI 相比，Cursor 更偏产品化 IDE，底层实现不可 fork。
+
+## 与 Claude Code、Codex 的对比维度
+
+| 维度 | Cursor |
+| --- | --- |
+| 主战场 | IDE 内编辑 + Agent |
+| 上下文 | 代码库索引、@ 引用、规则文件 |
+| 上手成本 | 对 VS Code 用户低 |
+| 自动化深度 | Agent/Composer 可多步，但仍以人机协同为主 |
+
+## 延伸阅读
+
+- [上下文工程](/docs/practices/context-engineering)：组织任务背景和约束
+- [工具调用与记忆](/docs/concepts/tools-and-memory)：工具接口与状态边界
+- [TypeScript](/docs/programming-languages/typescript)：IDE Agent 常见技术栈
+- [Codex](/docs/coding-agents/codex)：OpenAI 在 Cursor 等 IDE 中的 Agent 扩展

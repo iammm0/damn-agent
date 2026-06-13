@@ -1,0 +1,51 @@
+---
+title: 《Claude Code Harness Engineering》
+description: 梳理 Harness 三组件、Managed Agents、Session、Sandbox、上下文压缩、记忆、多 Agent 与生产化。
+---
+
+《Claude Code Harness Engineering：从入门到实战》是本站工程实践层的主要参考书。它回答的不是「Agent 有哪些模式」，而是「一个会调用真实工具的长任务 Agent，如何拆成可恢复、可审计、可扩展的工程系统」。
+
+| 属性 | 内容 |
+| --- | --- |
+| 页数 | 163 |
+| 下载 | [PDF](/resources/books/harness-engineering-book.pdf) |
+| 主要对应页面 | [Harness 工程构件](/docs/practices/harness-engineering)、[智能体基础](/docs/concepts/agentic-basics) |
+
+## 这本书解决什么
+
+- 解释为什么要把 LLM 调用、工具执行和状态管理拆开。
+- 给出 Session、Harness、Sandbox 三个核心构件的职责边界。
+- 说明长任务中的检查点、Sprint Contract 和崩溃恢复。
+- 覆盖上下文压缩、记忆、多 Agent、权限和生产化部署。
+
+## 推荐章节与主题
+
+| 主题 | 在站内的用途 | 参考页码 |
+| --- | --- | --- |
+| Agent 定义与 ReAct | LLM 局限、思考-行动-观察循环 | pp. 8-11 |
+| Sandbox 与安全 | 隔离执行、凭证外置、资源限额 | pp. 43-50 |
+| Session 事件日志 | append-only、可回放、可审计 | pp. 51-56；pp. 80-87 |
+| Harness 无状态编排 | 解耦大脑与双手、水平扩展 | pp. 79-87 |
+| 上下文与压缩 | Token 预算、压缩与缓存策略 | pp. 88-95 |
+| 记忆 | 跨会话状态与项目经验 | pp. 96-106 |
+| 多 Agent | Coordinator/Worker、冲突与恢复 | pp. 107-116 |
+| MCP 与生产化 | 工具标准化、上线检查 | pp. 152-156 |
+
+## 阅读顺序建议
+
+1. 先读 Agent 定义和 ReAct，弄清 Harness 要补的缺口。
+2. 再读 Session、Harness、Sandbox，建立三组件心智模型。
+3. 然后读上下文、记忆和多 Agent，处理长任务问题。
+4. 最后结合 [《Demystifying Claude Code v1.8》](/docs/resources/demystifying-claude-code) 看真实产品如何落地。
+
+## 站内已引用内容
+
+- [Harness 工程构件](/docs/practices/harness-engineering)：三组件、工具注册表、Sprint Contract、观测指标。
+- [智能体基础](/docs/concepts/agentic-basics)：Agent 定义、ReAct、记忆、多 Agent、MCP、安全。
+- [Token 与上下文窗口](/docs/model-basics/tokens-and-context)：上下文预算与压缩策略。
+
+## 使用注意
+
+- 本书以 Claude Code 场景为例，但构件划分可迁移到其他 Agent 产品。
+- 阅读时关注「谁保存状态、谁执行副作用、谁可替换」，不要只记名词。
+- 与模式书对照阅读效果更好：模式书讲 what，本书讲 how to engineer。

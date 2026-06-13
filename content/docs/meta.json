@@ -2,11 +2,13 @@
   "title": "Damn Agent",
   "pages": [
     "index",
+    "model-basics",
     "concepts",
     "programming-languages",
     "practices",
     "frameworks",
     "open-source-agents",
+    "coding-agents",
     "cases",
     "resources",
     "maintainers",

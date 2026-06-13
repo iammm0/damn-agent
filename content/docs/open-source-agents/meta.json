@@ -2,13 +2,15 @@
   "title": "开源智能体",
   "pages": [
     "index",
-    "evaluation-method",
-    "project-pool",
+    "openhands",
+    "swe-agent",
+    "aider",
+    "open-swe",
+    "plandex",
+    "gpt-researcher",
+    "browser-use",
+    "open-interpreter",
     "openclaw",
-    "hermes-agent",
-    "coding-agents",
-    "research-agents",
-    "browser-computer-use-agents",
-    "general-purpose-agents"
+    "hermes-agent"
   ]
 }

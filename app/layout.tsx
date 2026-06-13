@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     template: "%s | Damn Agent",
   },
   description:
-    "面向开发者的 AI Agent 技术学习文档站，覆盖核心概念、工程实践、框架工具和案例拆解。",
+    "面向开发者的 AI Agent 技术学习文档站（Beta），覆盖模型基础、核心概念、工程实践、框架工具、编码 Agent 和案例拆解。",
   icons: {
     icon: siteConfig.avatar,
   },

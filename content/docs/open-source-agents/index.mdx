@@ -1,41 +1,60 @@
 ---
 title: 开源智能体
-description: 社区开源智能体项目的分类、评估方法、项目池和工程拆解入口。
+description: 社区开源智能体具体项目的工程拆解入口。
 ---
 
-这个板块专门讲社区中的开源智能体项目。它和「框架工具」不同：框架页关注 API、抽象和选型；开源智能体页关注一个具体项目如何组织目标、工具、记忆、运行环境、交互界面、部署方式和贡献生态。
+这个板块专门讲社区中的具体开源智能体项目。它和「框架工具」不同：框架页关注 API、抽象和选型；开源智能体页关注一个具体项目如何组织目标、工具、记忆、运行环境、交互界面、部署方式和贡献生态。
 
 ## 为什么单独成板块
 
 - 开源智能体项目比框架更接近可运行产品，能看到真实目录结构、工具封装、UI、任务状态和部署方式。
-- 同一个项目往往同时包含 prompt、工具、浏览器、终端、记忆、队列、评测、权限和前端交互，不适合只放进框架页。
-- 社区项目变化快，需要独立维护项目池、更新时间、仓库状态和适用边界。
+- 同一个项目往往同时包含 prompt、工具、浏览器、终端、记忆、队列、权限和前端交互，不适合只放进框架页。
 - 读者需要知道哪些设计能借鉴，哪些只是 demo，哪些已经适合二次开发。
 
-## 阅读入口
+## 收录项目
 
-| 页面 | 用途 |
+### 代码智能体
+
+| 项目 | 为什么先看 |
 | --- | --- |
-| [评估方法](/docs/open-source-agents/evaluation-method) | 先确定如何判断一个开源智能体项目是否值得拆解。 |
-| [项目池](/docs/open-source-agents/project-pool) | 维护待评估、已收录、暂缓收录和淘汰项目。 |
-| [OpenClaw](/docs/open-source-agents/openclaw) | 拆解本地优先、多渠道个人 AI 助理的 Gateway、渠道、安全和 onboarding。 |
-| [Hermes Agent](/docs/open-source-agents/hermes-agent) | 拆解自改进 Agent 的技能、记忆、消息网关、cron、子智能体和运行后端。 |
-| [代码智能体](/docs/open-source-agents/coding-agents) | 关注代码编辑、测试、提交、PR 和仓库理解。 |
-| [研究智能体](/docs/open-source-agents/research-agents) | 关注检索、引用、资料整理、报告生成和来源追踪。 |
-| [浏览器与计算机使用智能体](/docs/open-source-agents/browser-computer-use-agents) | 关注浏览器、桌面、VNC、页面状态和人工接管。 |
-| [通用任务智能体](/docs/open-source-agents/general-purpose-agents) | 关注多工具、多步骤、任务编排和产品化尝试。 |
+| [OpenHands](/docs/open-source-agents/openhands) | 开源软件工程 Agent 平台，覆盖代码编辑、终端、浏览器、sandbox 和软件开发任务。 |
+| [SWE-agent](/docs/open-source-agents/swe-agent) | 围绕真实 GitHub issue 修复和 SWE-bench 建立了清晰的研究与评测样本。 |
+| [aider](/docs/open-source-agents/aider) | 终端内 pair programming，适合观察 repo map、git 工作流和多文件编辑体验。 |
+| [Open SWE](/docs/open-source-agents/open-swe) | 异步云端 coding agent，重点看 GitHub issue、计划、测试、PR 和人类审核链路。 |
+| [Plandex](/docs/open-source-agents/plandex) | 面向大项目和多步骤改动，适合观察计划、上下文和长任务代码修改。 |
 
-## 第一批收录项目
+### 研究智能体
 
-| 项目 | 分类 | 为什么先看 |
-| --- | --- | --- |
-| [OpenClaw](/docs/open-source-agents/openclaw) | 通用任务智能体 | 它把个人助理、消息渠道、Gateway、Canvas、技能、sandbox 和安全暴露问题放在一个可运行项目里。 |
-| [Hermes Agent](/docs/open-source-agents/hermes-agent) | 通用任务智能体 | 它把 CLI/TUI、消息网关、技能记忆、自改进循环、cron 和多运行后端组合成一个完整 Agent 产品。 |
+| 项目 | 为什么先看 |
+| --- | --- |
+| [GPT Researcher](/docs/open-source-agents/gpt-researcher) | 开源 deep research agent，重点看多来源检索、引用和报告生成。 |
 
-## 收录原则
+### 浏览器与计算机使用智能体
 
-- 必须能找到公开仓库、许可证、README、运行方式和维护痕迹。
-- 优先拆解有真实工程结构的项目，不优先收录只停留在 prompt demo 的项目。
-- 每个项目都要标注最后核验时间，避免把过期状态当作当前事实。
-- 只写可复核内容：仓库结构、核心模块、运行方式、依赖、限制、适用场景。
-- 不把 star 数、热度或宣传语当作质量结论。
+| 项目 | 为什么先看 |
+| --- | --- |
+| [Browser Use](/docs/open-source-agents/browser-use) | 让 Agent 控制真实浏览器，适合拆解 browser harness、恢复循环和网页任务。 |
+| [Open Interpreter](/docs/open-source-agents/open-interpreter) | 让 LLM 在本地运行代码和操作计算机，适合拆解 harness、Shell 和 computer use。 |
+
+### 通用任务智能体
+
+| 项目 | 为什么先看 |
+| --- | --- |
+| [OpenClaw](/docs/open-source-agents/openclaw) | 把个人助理、消息渠道、Gateway、Canvas、技能、sandbox 和安全暴露放在一个可运行项目里。 |
+| [Hermes Agent](/docs/open-source-agents/hermes-agent) | 把 CLI/TUI、消息网关、技能记忆、自改进循环、cron 和多运行后端组合成完整 Agent 产品。 |
+
+## 拆解时看什么
+
+每个项目页都应能回答：
+
+1. 它解决什么任务，运行入口在哪里。
+2. 工具、记忆、状态和权限分别落在哪些模块。
+3. 哪些设计值得借鉴，哪些只是 demo 或研究原型。
+4. 最小可运行路径和当前维护状态。
+
+## 与相邻板块的关系
+
+- [框架工具](/docs/frameworks)：看抽象、API 和选型，不看具体产品形态。
+- [编码 Agent](/docs/coding-agents)：看 Claude Code、Codex、Cursor 等商业/产品级编码 Agent。
+- [案例拆解](/docs/cases)：保留更通用的场景分析和源码深读。
+- [工程实践](/docs/practices)：把从开源项目里学到的模式沉淀为可复用做法。

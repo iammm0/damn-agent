@@ -2,6 +2,7 @@
 
 Damn Agent（damnagent.org）是一个面向开发者的 AI Agent 技术学习文档站。它用中文系统梳理智能体核心概念、工程实践、框架工具和案例拆解，目标是帮助开发者把 Agent 从“概念演示”推进到“可运行、可调试、可评测、可维护”的工程系统。
 
+![Beta](https://img.shields.io/badge/status-beta-orange)
 ![Next.js](https://img.shields.io/badge/Next.js-App_Router-black?logo=nextdotjs)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178c6?logo=typescript&logoColor=white)
 ![Fumadocs](https://img.shields.io/badge/Fumadocs-MDX-111827)

@@ -1,0 +1,51 @@
+---
+title: 《智能体设计模式》
+description: 梳理工具使用、规划、多 Agent、记忆、MCP、Guardrails 与评估等 Agent 基础模式。
+---
+
+《智能体设计模式》（Agentic Design Patterns）是本站 Agent 概念层的主要参考书。它用模式语言组织智能体设计，适合在接触框架和具体项目之前建立统一心智模型。
+
+| 属性 | 内容 |
+| --- | --- |
+| 页数 | 298 |
+| 下载 | [PDF](/resources/books/agentic-design-patterns-chinese.pdf) |
+| 主要对应页面 | [智能体基础](/docs/concepts/agentic-basics) |
+
+## 这本书解决什么
+
+- 把 Agent 拆成可命名的模式，而不是零散技巧。
+- 说明工具、记忆、规划、反思、多 Agent 各自解决什么问题。
+- 给出 MCP、Guardrails、评估等工程化主题的入门框架。
+- 帮助读者判断某个设计是模式问题，还是具体产品实现细节。
+
+## 推荐章节与主题
+
+| 主题 | 在站内的用途 | 参考页码 |
+| --- | --- | --- |
+| 工具使用（Tool Use） | 工具调用六步、schema 与观察结果闭环 | pp. 49-62 |
+| 规划（Planning） | 目标分解、动态调整、计划展示 | pp. 65-74 |
+| 多 Agent（Multi-Agent） | 角色分工、通信、协调者架构 | pp. 75-85 |
+| 记忆（Memory） | 短期、长期记忆与 RAG 式检索 | pp. 87-98 |
+| MCP | 工具层标准化、客户端-服务器架构 | pp. 109-111 |
+| Guardrails | 输入验证、输出过滤、工具限制 | pp. 193-198 |
+| 评估 | 质量判断与持续监控思路 | 全书相关章节 |
+
+## 阅读顺序建议
+
+1. 先读工具使用和规划，理解 Agent 最小闭环。
+2. 再读记忆和多 Agent，理解状态与协作边界。
+3. 最后读 MCP、Guardrails 和评估，进入工程化思维。
+
+如果同时阅读 [《Claude Code Harness Engineering》](/docs/resources/harness-engineering-book)，建议先用本书建立模式语言，再用 Harness 书补 Session、Sandbox 和执行隔离。
+
+## 站内已引用内容
+
+- [智能体基础](/docs/concepts/agentic-basics)：ReAct、工具、记忆、规划、多 Agent、MCP、安全边界。
+- [工具调用与记忆](/docs/concepts/tools-and-memory)：工具接口与上下文装配。
+- [多 Agent 协作](/docs/concepts/multi-agent)：协作模式与风险。
+
+## 使用注意
+
+- 本书偏模式与概念，不替代具体框架文档。
+- 模式名称在不同项目里实现方式不同，阅读时要回到仓库结构验证。
+- 引用本站内容时，请通过页码回到 PDF 核对原文语境。

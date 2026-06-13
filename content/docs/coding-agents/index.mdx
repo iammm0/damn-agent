@@ -1,0 +1,37 @@
+---
+title: 编码 Agent
+description: 主流编码 Agent 产品介绍：Claude Code、Codex、Cursor 等产品的定位、交互形态与工程特点。
+---
+
+这个板块专门介绍**已产品化的编码 Agent**，而不是开源仓库拆解或框架 API。重点看它们如何组织人机交互、工具调用、上下文、权限和工程工作流。
+
+## 与相邻板块的区别
+
+| 板块 | 关注点 |
+| --- | --- |
+| [编码 Agent](/docs/coding-agents) | 商业/产品级编码 Agent：Claude Code、Codex、Cursor 等 |
+| [开源智能体](/docs/open-source-agents) | 社区开源项目：OpenHands、aider、SWE-agent 等可读仓库 |
+| [案例拆解](/docs/cases) | 通用场景分析与源码深读，如 [Claude Code 源码解析](/docs/cases/claude-code-source-analysis) |
+| [框架工具](/docs/frameworks) | LangGraph、Mastra 等编排框架与 SDK |
+
+## 收录产品
+
+| 产品 | 一句话定位 |
+| --- | --- |
+| [Claude Code](/docs/coding-agents/claude-code) | Anthropic 终端编码 Agent，强调工具系统、Harness 架构和 MCP 扩展。 |
+| [Codex](/docs/coding-agents/codex) | OpenAI 编码 Agent，覆盖 CLI、IDE 扩展和云端异步任务执行。 |
+| [Cursor](/docs/coding-agents/cursor) | AI 原生 IDE，把 Agent、Composer 和代码库上下文嵌进编辑体验。 |
+
+## 阅读这些产品时看什么
+
+1. **交互入口**：终端、IDE、Web 还是云端沙箱。
+2. **动作空间**：读文件、改文件、跑命令、开浏览器、提 PR 的边界。
+3. **上下文来源**：打开文件、代码库索引、规则文件、记忆和外部 MCP。
+4. **权限模型**：自动执行、确认后执行、沙箱隔离各自覆盖什么。
+5. **适合谁**：个人开发者、团队 review、长任务自动化还是日常补全。
+
+## 使用建议
+
+- 先读产品页建立定位，再对照 [Harness 工程构件](/docs/practices/harness-engineering) 看工程边界。
+- Claude Code 可继续深读 [源码解析案例](/docs/cases/claude-code-source-analysis) 和 [相关书籍](/docs/resources/harness-engineering-book)。
+- 与 [开源智能体](/docs/open-source-agents) 对照阅读，能更好区分「产品体验」和「可 fork 的实现」。

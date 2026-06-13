@@ -1,0 +1,40 @@
+---
+title: 模型基础知识
+description: 面向 Agent 工程的 LLM 基础：Transformer、Token、上下文窗口、推理参数、提示词与结构化输出。
+---
+
+这个板块不做深度学习论文导读，而是整理开发智能体系统前必须理解的模型层知识。先弄清模型能做什么、不能做什么，再进入 Agent Loop、工具调用和 Harness 工程，判断会更稳。
+
+## 学习优先级
+
+| 优先级 | 主题 | 为什么重要 |
+| --- | --- | --- |
+| 1 | [LLM 概览](/docs/model-basics/llm-overview) | 建立能力边界：生成、推理、工具调用和幻觉分别意味着什么。 |
+| 2 | [Token 与上下文窗口](/docs/model-basics/tokens-and-context) | 上下文是硬预算，直接影响成本、压缩策略和 Agent 设计。 |
+| 3 | [Transformer 基础](/docs/model-basics/transformer-basics) | 理解注意力、位置编码和预训练-微调范式，读懂模型接口背后的约束。 |
+| 4 | [推理参数与提示词基础](/docs/model-basics/inference-and-prompting) | 控制输出稳定性、长度、格式和任务指令的组织方式。 |
+| 5 | [结构化输出与工具调用](/docs/model-basics/structured-output) | 模型层如何把自然语言约束成 JSON、函数参数和可验证接口。 |
+| 6 | [模型选型与能力边界](/docs/model-basics/model-selection) | 按任务复杂度、延迟、成本、上下文和多模态需求选模型。 |
+
+## 这个板块解决什么
+
+- 协作者进入 Agent 项目前，需要知道 LLM 和 Agent 的分工边界。
+- 设计上下文、记忆和压缩策略时，需要理解 Token 预算和窗口限制。
+- 调试工具调用失败时，需要区分是模型层问题还是编排层问题。
+- 做模型选型时，需要按能力层级而不是品牌偏好做决策。
+
+## 与相邻板块的关系
+
+| 板块 | 分工 |
+| --- | --- |
+| [模型基础知识](/docs/model-basics) | 模型本身：能力、输入输出、采样、结构化接口。 |
+| [核心概念](/docs/concepts) | Agent 系统：Loop、工具、记忆、规划、多 Agent。 |
+| [工程实践](/docs/practices) | 上线后：上下文工程、RAG、评测、可观测性、安全。 |
+| [编程语言基础](/docs/programming-languages) | 实现层：TypeScript、Python 等语言与 SDK 集成。 |
+
+## 建设原则
+
+- 以工程视角讲模型，不展开训练细节和数学推导。
+- 每个主题都回答三个问题：它是什么、它失败时会怎样、Agent 系统里谁该处理它。
+- 与 Agent 强相关的内容优先：上下文预算、工具调用、结构化输出、模型版本追踪。
+- 后续补充示例代码、API 对照表和常见模型族谱，但先保证目录和心智模型完整。
