@@ -60,8 +60,10 @@
 | 协作者 | @ormasia | 待补充 | 待认领 | - | 未开始 | 已加入远端仓库协作者 | [GitHub](https://github.com/ormasia) |
 | 协作者 | @p20061 | 待补充 | 待认领 | - | 未开始 | 新增远端仓库协作者 | [GitHub](https://github.com/p20061) |
 | 协作者 | @Riverzen | 待补充 | 待认领 | - | 未开始 | 已加入远端仓库协作者 | [GitHub](https://github.com/Riverzen) |
+| 协作者 | @Sorwcyra | 待补充 | 待认领 | - | 未开始 | 已加入远端仓库协作者 | [GitHub](https://github.com/Sorwcyra) |
 | 协作者 | @TerryLiang9 | 待补充 | 待认领 | - | 未开始 | 已加入远端仓库协作者 | [GitHub](https://github.com/TerryLiang9) |
 | 协作者 | @violet5564 | 待补充 | 待认领 | - | 未开始 | 已加入远端仓库协作者 | [GitHub](https://github.com/violet5564) |
+| 协作者 | @WHUdonic | 待补充 | 待认领 | - | 未开始 | 已加入远端仓库协作者 | [GitHub](https://github.com/WHUdonic) |
 | 协作者 | @WHUdonic77 | 待补充 | 待认领 | - | 未开始 | 已加入远端仓库协作者 | [GitHub](https://github.com/WHUdonic77) |
 
 ### 内容更新
@@ -70,7 +72,7 @@
 - 新增模型基础知识、编码 Agent（Claude Code、Codex、Cursor）、资源清单（资源总览 + 分册）等一级目录。
 - 精简开源智能体板块，移除评估方法、项目池和分类页，仅保留具体项目页。
 - 暂时下线运维与浏览器 Agent 案例。
-- 重新同步维护者名单，新增协作者 `p20061`。
+- 重新同步维护者名单，新增协作者 `p20061`、`Sorwcyra`、`WHUdonic`。
 
 ### 工程更新
 

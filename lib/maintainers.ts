@@ -6,8 +6,10 @@ export const maintainerGithubIds = [
   "ormasia",
   "p20061",
   "Riverzen",
+  "Sorwcyra",
   "TerryLiang9",
   "violet5564",
+  "WHUdonic",
   "WHUdonic77",
 ] as const;
 
