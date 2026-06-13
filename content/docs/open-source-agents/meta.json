@@ -1,0 +1,12 @@
+{
+  "title": "开源智能体",
+  "pages": [
+    "index",
+    "evaluation-method",
+    "project-pool",
+    "coding-agents",
+    "research-agents",
+    "browser-computer-use-agents",
+    "general-purpose-agents"
+  ]
+}

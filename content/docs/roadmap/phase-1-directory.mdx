@@ -12,11 +12,12 @@ description: 对照 Agent 技术学习第一期目标，评估当前网站目录
 - `concepts` 能承载基础概念、Agent Loop、工具、记忆、多 Agent 等底层模型。
 - `practices` 能承载上下文工程、Harness、RAG、可观测性、评测、安全等工程方法。
 - `frameworks` 能承载 LangGraph、Mastra、AutoGen、CrewAI、OpenAI Agents SDK、Vercel AI SDK 等框架选型。
+- `open-source-agents` 能承载社区开源智能体项目的项目池、分类、评估方法和具体项目拆解。
 - `cases` 能承载 Claude Code、Research Agent、Coding Agent、运维/浏览器 Agent 等案例拆解。
 - `roadmap` 能承载目录评估、共建计划和后续排期。
 - `resources` 能承载书籍、论文、仓库、官方文档和延伸阅读。
 
-但在第一期协作视角下，原目录缺少几个明确入口：规划反思、RAG、多 Agent、安全权限、框架选型总览、Coding Agent、运维/浏览器 Agent、共建路线。当前改动先把这些入口铺出来。
+但在第一期协作视角下，原目录缺少几个明确入口：规划反思、RAG、多 Agent、安全权限、框架选型总览、开源智能体项目池、Coding Agent、运维/浏览器 Agent、共建路线。当前改动先把这些入口铺出来。
 
 ## 第一版目录映射
 
@@ -32,18 +33,20 @@ description: 对照 Agent 技术学习第一期目标，评估当前网站目录
 | 可观测性、评测与回归测试 | `practices/observability`、`practices/evaluation` | 新增观测页，保留评测页 |
 | 安全、权限、风控与人类接管 | `practices/safety-and-governance` | 新增骨架 |
 | 框架生态与选型比较 | `frameworks/framework-selection` 和各框架页 | 新增选型页和框架占位 |
+| 社区开源智能体项目 | `open-source-agents` | 新增独立顶层板块，后续逐项验源 |
 | Coding Agent 与 Harness 工程 | `practices/harness-engineering`、`cases/coding-agent` | 新增案例入口 |
 | 运维 Agent、浏览器 Agent 与产品化落地 | `cases/ops-browser-agent` | 新增案例入口 |
 
 ## 目录评估结论
 
-当前网站目录可以承载第一期内容，但需要按「概念、实践、框架、案例、资源、共建路线」分层维护，避免把所有知识都堆到一个大页面里。
+当前网站目录可以承载第一期内容，但需要按「概念、实践、框架、开源智能体、案例、资源、共建路线」分层维护，避免把所有知识都堆到一个大页面里。
 
 第一期不建议直接按协作者建立 12 个顶级目录。更合理的方式是：协作者负责知识板块，内容落到稳定的信息架构中。这样后续第二期、第三期继续扩展时，不会因为人员变化导致目录失控。
 
 ## 下一步确认点
 
-- 是否接受当前 6 个顶层分组：核心概念、工程实践、框架工具、案例拆解、共建路线、资源清单。
+- 是否接受当前 7 个顶层分组：核心概念、工程实践、框架工具、开源智能体、案例拆解、共建路线、资源清单。
 - 是否把「记忆、状态与知识存储」从 `tools-and-memory` 里拆成独立页面。
 - 是否把「运维 Agent」和「浏览器 Agent」拆成两个案例页面。
+- 是否把开源智能体项目按项目单独建页，还是先按代码、研究、浏览器、通用任务四类维护。
 - 是否在 `roadmap` 下继续维护排期，还是只把排期放在 GitHub issue。
