@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { formatDocEditDate } from "@/lib/doc-edit-meta";
@@ -68,10 +69,10 @@ function MaintainersTable({
       <MaintainersMeta syncedAt={syncedAt} sourceUrl={sourceUrl} />
 
       <div className="overflow-x-auto rounded-xl border">
-        <table className="w-full min-w-[640px] border-collapse text-sm">
+        <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead>
             <tr className="border-b bg-muted/40 text-left">
-              <th className="px-4 py-3 font-medium">GitHub ID</th>
+              <th className="px-4 py-3 font-medium">协作者</th>
               <th className="px-4 py-3 font-medium">远端权限</th>
               <th className="px-4 py-3 font-medium">维护说明</th>
             </tr>
@@ -82,15 +83,8 @@ function MaintainersTable({
                 key={collaborator.login}
                 className="border-b last:border-b-0 align-top"
               >
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <Link
-                    href={collaborator.profileUrl}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {collaborator.login}
-                  </Link>
+                <td className="px-4 py-3">
+                  <CollaboratorIdentity collaborator={collaborator} />
                 </td>
                 <td className="px-4 py-3 text-muted-foreground">
                   {collaborator.permissionLabel}
@@ -105,9 +99,57 @@ function MaintainersTable({
       </div>
 
       <p className="text-sm text-muted-foreground">
-        当前共同步 {collaborators.length} 位协作者。名单每小时从 GitHub API
-        刷新一次。
+        当前共同步 {collaborators.length}{" "}
+        位协作者的头像与公开资料。名单每小时从 GitHub API 刷新一次。
       </p>
+    </div>
+  );
+}
+
+function CollaboratorIdentity({
+  collaborator,
+}: {
+  collaborator: GithubCollaborator;
+}) {
+  return (
+    <div className="flex min-w-0 items-start gap-3">
+      <Link
+        href={collaborator.profileUrl}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="shrink-0 overflow-hidden rounded-full ring-1 ring-border"
+        aria-label={`${collaborator.login} 的 GitHub 主页`}
+      >
+        <Image
+          src={collaborator.avatarUrl}
+          alt={`${collaborator.login} 的头像`}
+          width={40}
+          height={40}
+          className="size-10 object-cover"
+        />
+      </Link>
+      <div className="min-w-0 space-y-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <Link
+            href={collaborator.profileUrl}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="font-medium text-primary hover:underline"
+          >
+            {collaborator.login}
+          </Link>
+          {collaborator.displayName ? (
+            <span className="text-muted-foreground">
+              {collaborator.displayName}
+            </span>
+          ) : null}
+        </div>
+        {collaborator.bio ? (
+          <p className="line-clamp-2 text-xs leading-5 text-muted-foreground">
+            {collaborator.bio}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -139,6 +181,7 @@ function MaintainersMeta({
         </Link>
       </li>
       <li>排序规则：管理员在前，其余账号按 GitHub ID 字母序排列。</li>
+      <li>资料来源：collaborators 接口 + users 公开资料接口。</li>
     </ul>
   );
 }

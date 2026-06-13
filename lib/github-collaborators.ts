@@ -14,6 +14,9 @@ export type GithubCollaboratorPermissions = {
 export type GithubCollaborator = {
   login: string;
   profileUrl: string;
+  avatarUrl: string;
+  displayName?: string;
+  bio?: string;
   roleName: string;
   permissions: GithubCollaboratorPermissions;
   permissionLabel: string;
@@ -28,8 +31,18 @@ export type GithubCollaboratorsResult = {
 
 type GithubCollaboratorsApiItem = {
   login: string;
+  avatar_url?: string;
+  html_url?: string;
   role_name?: string;
   permissions?: Partial<GithubCollaboratorPermissions>;
+};
+
+type GithubUserApiItem = {
+  login: string;
+  avatar_url?: string;
+  html_url?: string;
+  name?: string | null;
+  bio?: string | null;
 };
 
 const ADMIN_DESCRIPTIONS: Record<string, string> = {
@@ -111,6 +124,40 @@ function sortCollaborators(
   });
 }
 
+async function fetchGithubUser(login: string): Promise<GithubUserApiItem | null> {
+  const response = await fetch(`https://api.github.com/users/${login}`, {
+    headers: getGithubHeaders(),
+    next: { revalidate: 3600 },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  return (await response.json()) as GithubUserApiItem;
+}
+
+async function enrichCollaboratorProfiles(
+  collaborators: GithubCollaborator[],
+): Promise<GithubCollaborator[]> {
+  const profiles = await Promise.all(
+    collaborators.map(async (collaborator) => {
+      const profile = await fetchGithubUser(collaborator.login);
+      if (!profile) return collaborator;
+
+      return {
+        ...collaborator,
+        avatarUrl: profile.avatar_url ?? collaborator.avatarUrl,
+        profileUrl: profile.html_url ?? collaborator.profileUrl,
+        displayName: profile.name?.trim() || undefined,
+        bio: profile.bio?.trim() || undefined,
+      };
+    }),
+  );
+
+  return profiles;
+}
+
 async function fetchGithubCollaborators(): Promise<GithubCollaboratorsResult> {
   const { owner, repo, url } = siteConfig.github;
   const endpoint = `https://api.github.com/repos/${owner}/${repo}/collaborators?per_page=100`;
@@ -143,7 +190,10 @@ async function fetchGithubCollaborators(): Promise<GithubCollaboratorsResult> {
 
       return {
         login: item.login,
-        profileUrl: `https://github.com/${item.login}`,
+        profileUrl: item.html_url ?? `https://github.com/${item.login}`,
+        avatarUrl:
+          item.avatar_url ??
+          `https://github.com/${item.login}.png?size=96`,
         roleName,
         permissions,
         permissionLabel: formatPermissionLabel(permissions, roleName),
@@ -153,7 +203,7 @@ async function fetchGithubCollaborators(): Promise<GithubCollaboratorsResult> {
   );
 
   return {
-    collaborators,
+    collaborators: await enrichCollaboratorProfiles(collaborators),
     syncedAt: new Date(),
     sourceUrl: url,
   };
