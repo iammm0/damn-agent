@@ -6,6 +6,7 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/page";
+import { SiteBrand } from "@/components/site-brand";
 import { mainNav, siteConfig } from "@/lib/site";
 import { source } from "@/lib/source";
 
@@ -38,7 +39,7 @@ export default function Home() {
     <DocsLayout
       tree={source.getPageTree()}
       nav={{
-        title: siteConfig.name,
+        title: <SiteBrand />,
       }}
       links={mainNav.map((item) => ({
         text: item.title,

@@ -7,8 +7,9 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/page";
+import { SiteBrand } from "@/components/site-brand";
 import { source } from "@/lib/source";
-import { mainNav, siteConfig } from "@/lib/site";
+import { mainNav } from "@/lib/site";
 
 type DocsRouteProps = {
   params: Promise<{
@@ -48,7 +49,7 @@ export default async function DocsRoutePage({ params }: DocsRouteProps) {
     <DocsLayout
       tree={source.getPageTree()}
       nav={{
-        title: siteConfig.name,
+        title: <SiteBrand />,
       }}
       links={mainNav.map((item) => ({
         text: item.title,

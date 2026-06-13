@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { RootProvider } from "fumadocs-ui/provider/next";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
+import { siteConfig } from "@/lib/site";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,6 +24,9 @@ export const metadata: Metadata = {
   },
   description:
     "面向开发者的 AI Agent 技术学习文档站，覆盖核心概念、工程实践、框架工具和案例拆解。",
+  icons: {
+    icon: siteConfig.avatar,
+  },
 };
 
 export default function RootLayout({
