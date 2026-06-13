@@ -98,16 +98,15 @@ pnpm start            # Start the production server after build
 │       ├── frameworks/
 │       ├── cases/
 │       └── resources/
-├── src/
-│   ├── app/                  # Next.js App Router shell
-│   │   ├── docs/[[...slug]]/ # Fumadocs dynamic docs route
-│   │   ├── layout.tsx
-│   │   └── page.tsx
-│   ├── components/           # Shared docs components and shadcn/ui components
-│   └── lib/
-│       ├── site.ts           # Docs navigation metadata
-│       ├── source.ts         # Fumadocs loader
-│       └── utils.ts
+├── app/                      # Next.js App Router shell
+│   ├── docs/[[...slug]]/     # Fumadocs dynamic docs route
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/               # Shared docs components and shadcn/ui components
+├── lib/
+│   ├── site.ts               # Docs navigation metadata
+│   ├── source.ts             # Fumadocs loader
+│   └── utils.ts
 ├── source.config.ts          # Fumadocs MDX collection config
 ├── next.config.mjs           # Next.js + Fumadocs MDX config
 ├── components.json           # shadcn/ui config
@@ -186,7 +185,7 @@ flowchart LR
 ```
 ````
 
-The homepage also uses `src/components/agent-flow-diagram.tsx` for client-side Mermaid rendering.
+The homepage can use components under `components/` for client-side interactive rendering when needed.
 
 ## Quality Checks
 
@@ -229,7 +228,7 @@ Suggested contribution flow:
 
 1. Create or update MDX content under `content/docs`.
 2. Update the corresponding `meta.json` when adding new pages.
-3. Reuse existing components and site data from `src/lib/site.ts`.
+3. Reuse existing components and site data from `lib/site.ts`.
 4. Run lint, type check, and build before opening a pull request.
 
 ## License
