@@ -7,7 +7,7 @@ import {
   DocsTitle,
 } from "fumadocs-ui/page";
 import { SiteBrand } from "@/components/site-brand";
-import { mainNav, siteConfig } from "@/lib/site";
+import { siteConfig } from "@/lib/site";
 import { source } from "@/lib/source";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,10 +41,6 @@ export default function Home() {
       nav={{
         title: <SiteBrand />,
       }}
-      links={mainNav.map((item) => ({
-        text: item.title,
-        url: item.href,
-      }))}
       sidebar={{
         enabled: true,
       }}

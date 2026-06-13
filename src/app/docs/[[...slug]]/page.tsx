@@ -9,7 +9,6 @@ import {
 } from "fumadocs-ui/page";
 import { SiteBrand } from "@/components/site-brand";
 import { source } from "@/lib/source";
-import { mainNav } from "@/lib/site";
 
 type DocsRouteProps = {
   params: Promise<{
@@ -51,10 +50,6 @@ export default async function DocsRoutePage({ params }: DocsRouteProps) {
       nav={{
         title: <SiteBrand />,
       }}
-      links={mainNav.map((item) => ({
-        text: item.title,
-        url: item.href,
-      }))}
       sidebar={{
         enabled: true,
       }}
