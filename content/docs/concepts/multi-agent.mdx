@@ -323,18 +323,24 @@ class MessageBus:
 import asyncio
 from typing import TypedDict
 
+
 class SharedState(TypedDict):
+    """共享状态的结构定义"""
     messages: list[str]
     research_data: dict
     draft: str
     review_comments: list[str]
     status: str
 
+
 class SafeSharedState:
     """带并发控制的共享状态"""
 
     def __init__(self):
-        self.state = {}
+        self.state: SharedState = {
+            "messages": [], "research_data": {},
+            "draft": "", "review_comments": [], "status": "init",
+        }
         self.lock = asyncio.Lock()
 
     async def update(self, agent_id: str, updates: dict):
@@ -530,7 +536,8 @@ triage_agent = Agent(
 #### Supervisor 模式（LangGraph）
 
 ```python title="supervisor-handoff-langgraph.py" lineNumbers
-from langgraph.graph import StateGraph
+from typing import TypedDict
+from langgraph.graph import StateGraph, END
 
 class SupervisorState(TypedDict):
     messages: list
@@ -1054,9 +1061,15 @@ CONSENSAGENT 方法：强制 Agent 先独立推理，再考虑他人观点：
 
 ```python title="anti-sycophancy.py" lineNumbers
 class AntiSycophancyProtocol:
+    def __init__(self, max_rounds=3):
+        self.max_rounds = max_rounds
+
     async def debate(self, agents, topic):
         for round in range(self.max_rounds):
             for agent in agents:
+                # 收集其他 Agent 的观点
+                other_views = await self.collect_other_views(agents, agent, topic)
+
                 response = await agent.generate(f"""
                 第一步：独立分析（忽略其他 Agent 的观点）
                 {topic}
@@ -1185,9 +1198,10 @@ LLM Agent 的趋同问题（Sycophancy）在群体动力学中会涌现——问
 class EmergentBehaviorMonitor:
     """监控多 Agent 系统的涌现行为"""
 
-    def __init__(self, agents, baseline_behaviors):
+    def __init__(self, agents, baseline_behaviors, threshold=0.3):
         self.agents = agents
         self.baseline = baseline_behaviors
+        self.threshold = threshold
 
     def detect_anomaly(self, agent_outputs):
         for agent_id, output in agent_outputs.items():
