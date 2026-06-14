@@ -435,9 +435,9 @@ CrewAI 通过回调机制支持任务取消：当某个 Agent 的任务被取消
 2. **降级**：跳过当前步骤，用默认值或简化方案继续。
 3. **上报**：降级仍无法继续时，上报给 Coordinator 或人工处理。
 
-OpenAI Agents SDK 通过 `max_turns` 参数限制 Agent 的最大执行轮次，防止无限循环。来源：OpenAI Agents SDK Documentation, https://openai.github.io/openai-agents-python/agents/。
+OpenAI Agents SDK 通过 `Runner.run()` 的 `max_turns` 参数限制 Agent 的最大执行轮次，防止无限循环。来源：OpenAI Agents SDK Documentation, https://openai.github.io/openai-agents-python/agents/。
 
-AutoGen 支持 `max_consecutive_auto_reply` 限制 Agent 间的最大连续回复次数，防止对话无限循环。来源：Wu et al., "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation", arXiv:2308.08155, 2023。
+AutoGen 框架支持 `max_consecutive_auto_reply` 限制 Agent 间的最大连续回复次数，防止对话无限循环。来源：AutoGen Documentation, https://microsoft.github.io/autogen/；Wu et al., "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation", arXiv:2308.08155, 2023。
 
 ### 给 Worker 的 Prompt 设计
 
@@ -515,7 +515,7 @@ LangGraph 的 Supervisor 模式是目前生产环境最常用的多 Agent 编排
 
 ### 例子 6：CrewAI——角色驱动的团队协作
 
-CrewAI 把多 Agent 协作建模为"团队"：每个 Agent 有角色（Role）、目标（Goal）和背景故事（Backstory），任务（Task）分配给特定 Agent，Crew 定义执行流程。支持三种流程类型：Sequential（顺序执行）、Hierarchical（Manager Agent 分配任务）、Consensus（多 Agent 投票决策）。来源：CrewAI Documentation, https://docs.crewai.com/。GitHub: https://github.com/crewAIInc/crewAI。
+CrewAI 把多 Agent 协作建模为"团队"：每个 Agent 有角色（Role）、目标（Goal）和背景故事（Backstory），任务（Task）分配给特定 Agent，Crew 定义执行流程。支持两种流程类型：Sequential（顺序执行）和 Hierarchical（Manager Agent 分配任务）。来源：CrewAI Documentation, https://docs.crewai.com/。GitHub: https://github.com/crewAIInc/crewAI。
 
 ## 常见坑
 
