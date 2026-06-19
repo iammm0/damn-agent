@@ -1,0 +1,408 @@
+---
+title: Node.js 与 TypeScript 生态
+description: Node.js、包管理器、TypeScript Agent 框架、MCP、CLI 和终端 UI 是产品化 Agent 的核心工程生态。
+---
+
+TypeScript 能成为产品化 Agent 的第一语言，离不开 Node.js 生态。语言本身负责类型和代码组织，Node.js 负责运行时、包管理、文件系统、网络、stream、进程和工具链，框架生态负责把模型调用、工具调用、MCP、CLI、TUI 和 Web UI 接起来。
+
+这页的目标不是列出所有 npm 包，而是给 Agent 工程建立一张可用地图：Node.js 负责什么，包管理器怎么选，runtime 如何取舍，Agent 框架怎么放，CLI/TUI 从哪里开始，monorepo 应该怎么组织。
+
+## Node.js 在 Agent 系统里的位置
+
+[Node.js Learn](https://nodejs.org/learn) 把 Node.js 定位为在浏览器之外运行 JavaScript 的环境。对 Agent 工程来说，它最重要的不是“能跑 JS”，而是能把 Web 产品、模型 API、工具调用、文件系统、子进程、流式响应和部署平台放在同一个工程语言里。
+
+| 系统位置 | Node.js 常见职责 |
+| --- | --- |
+| Web 后端 | Next.js API route、server action、BFF、webhook、SSE、streaming response。 |
+| Agent 编排 | 组织模型调用、工具调用、消息状态、人工确认和 trace。 |
+| MCP | 实现 MCP client/server，连接本地工具、远程服务和资源。 |
+| 工具服务 | 轻量 HTTP tool、内部 SDK wrapper、第三方 API adapter。 |
+| CLI/TUI | 本地开发工具、评测命令、任务控制台、交互式 Agent 控制台。 |
+| 构建和脚本 | 代码生成、文档生成、发布脚本、迁移脚本、monorepo 任务。 |
+
+Node.js 不一定适合所有 infra 高并发服务，也不一定适合所有数据处理任务。但在产品化 Agent 的“胶水层”里，它非常强：前端、后端、SDK、工具协议和部署平台都能用同一套 TypeScript 类型连接。
+
+## Runtime 基础能力
+
+| 能力 | Agent 工程里的用法 |
+| --- | --- |
+| 事件循环 | 支撑大量 I/O、模型请求、工具调用、流式响应和后台任务。 |
+| 异步 I/O | HTTP 请求、文件读取、数据库访问、外部 API 调用不会阻塞主线程。 |
+| `Promise` / `async` / `await` | 写模型调用、工具执行、重试、并发和超时控制的基本方式。 |
+| stream | 处理模型 token streaming、文件上传、日志流、SSE 和长响应。 |
+| `AbortController` | 取消模型调用、浏览器操作、长任务和用户放弃的请求。 |
+| `process.env` | 管理模型 key、数据库连接、部署环境和 feature flag。 |
+| 文件系统 | 读写 artifact、缓存、索引、配置、报告和本地 workspace。 |
+| 子进程 | 调用 git、python、rust CLI、爬虫脚本、代码生成器和沙箱执行器。 |
+| HTTP | 暴露 API route、MCP transport、tool gateway、webhook 和内部服务。 |
+| ESM/CJS | 决定模块导入、构建输出、包发布和依赖兼容。 |
+| package exports | 控制包的公开入口，适合 SDK、工具库和 monorepo package。 |
+
+Agent 产品常见的 Node.js 边界包括：Next.js API route、server action、MCP server、工具网关、CLI 命令、后台 worker、webhook handler 和本地开发脚本。
+
+## 事件循环和异步模型
+
+Node.js 的并发基础是事件循环和异步 I/O。对 Agent 项目来说，这意味着模型 API 请求、搜索请求、文件读取、数据库查询和工具调用可以同时等待，不必每个请求占一个线程。
+
+但这也带来两个工程要求：
+
+- CPU 密集任务不要长期占住主线程。大文件解析、向量批处理、压缩、图像处理和复杂代码分析应考虑 worker thread、子进程、Python/Go/Rust 服务或队列。
+- 每个外部调用都要有取消和超时。模型、浏览器、爬虫、HTTP tool 和数据库都可能卡住。
+
+```ts title="timeout.ts" lineNumbers
+async function withTimeout<T>(task: (signal: AbortSignal) => Promise<T>, ms: number) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+
+  try {
+    return await task(controller.signal);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+```
+
+这种模式适合包住模型调用、fetch 请求、工具执行和长任务。只要下游支持 `AbortSignal`，用户取消或超时就能传递下去。
+
+## Stream、SSE 和流式 Agent UI
+
+Agent 产品通常需要把模型输出、工具调用、进度和错误逐步展示给用户。Node.js 的 stream 能力和 Web Streams API 是流式 UI 的基础。
+
+常见流式数据包括：
+
+- 模型 text delta。
+- tool call 创建和执行状态。
+- tool result。
+- 人工确认请求。
+- artifact 创建事件。
+- trace / debug event。
+- error 和 retry event。
+
+建议把流式事件设计成结构化对象，而不是纯文本：
+
+```ts title="stream-event.ts" lineNumbers
+type AgentStreamEvent =
+  | { type: "text"; delta: string }
+  | { type: "tool_call"; id: string; name: string; input: unknown }
+  | { type: "tool_result"; id: string; output: unknown }
+  | { type: "progress"; label: string; current?: number; total?: number }
+  | { type: "error"; message: string };
+```
+
+这样前端可以按事件类型渲染 UI，而不是从自然语言文本里解析状态。
+
+## 文件系统、Artifact 和 Workspace
+
+很多 Agent 任务会产出文件：Markdown 报告、JSON 结果、截图、PDF、代码补丁、抓取数据、评测报告。Node.js 适合做轻量文件编排，但要明确 workspace 边界。
+
+建议：
+
+- 所有写入都落在明确 workspace 或 artifact 目录。
+- artifact 记录要包含 `id`、`kind`、`uri`、`createdAt`、`createdByTaskId`。
+- 不要把用户上传文件、模型生成文件和系统缓存混在同一个目录。
+- 读写路径必须规范化，避免路径穿越。
+- 大文件用 stream，不要一次性读进内存。
+
+## 子进程与外部工具
+
+Node.js 很适合做工具编排层：它可以调用 git、ripgrep、Python 脚本、Rust CLI、浏览器自动化、代码生成器和部署 CLI。但子进程是高风险边界。
+
+设计原则：
+
+- 命令参数用数组传递，不拼接 shell 字符串。
+- 明确 `cwd`、环境变量、超时和最大输出大小。
+- stdout/stderr 分开记录。
+- 高风险命令进入人工确认。
+- 失败时保留 exit code、signal、stderr 摘要和可复现命令。
+
+```ts title="run-command-shape.ts" lineNumbers
+type CommandResult = {
+  command: string;
+  args: string[];
+  cwd: string;
+  exitCode: number | null;
+  stdout: string;
+  stderr: string;
+  durationMs: number;
+};
+```
+
+这类结构化结果适合进入 trace，也适合作为工具结果展示给用户。
+
+## ESM、CJS 与 Package 边界
+
+Node.js 生态里最常见的工程问题之一是模块格式。ESM 使用 `import` / `export`，CJS 使用 `require` / `module.exports`。现代 TypeScript 项目通常优先 ESM，但仍会遇到旧包、CLI 工具和构建产物兼容问题。
+
+写 Agent 项目时建议：
+
+- 新项目优先使用 ESM，保持和现代前端、Node.js、AI SDK 生态一致。
+- 包发布时理解 `package.json` 的 `type`、`exports`、`main`、`types` 字段。
+- monorepo 内部 package 不要随意暴露深层路径，优先通过 `exports` 固定公共 API。
+- CLI 包要额外测试 `node` 直接执行、包管理器脚本执行和构建后执行三种路径。
+- server-only 代码和浏览器可用代码分包导出，避免前端误引入 `fs`、数据库或模型 key。
+
+参考：[Node.js ECMAScript Modules](https://nodejs.org/api/esm.html)、[Node.js Packages](https://nodejs.org/api/packages.html)。
+
+## package.json 要看什么
+
+`package.json` 是 Node.js 项目的工程协议。Agent 项目至少要理解这些字段：
+
+| 字段 | 用途 |
+| --- | --- |
+| `scripts` | 定义 dev、build、lint、test、typecheck、eval、deploy 等命令。 |
+| `dependencies` | 运行时依赖，例如 AI SDK、HTTP client、schema、数据库 client。 |
+| `devDependencies` | 构建和开发依赖，例如 TypeScript、ESLint、tsx、vitest。 |
+| `peerDependencies` | 插件或库要求宿主项目提供的依赖。 |
+| `type` | 决定 `.js` 默认按 ESM 还是 CJS 解释。 |
+| `exports` | 控制包的公开入口。 |
+| `types` | 指向类型声明入口。 |
+| `bin` | 定义 CLI 可执行命令。 |
+| `engines` | 标注支持的 Node.js 版本范围。 |
+
+Agent monorepo 里，`scripts` 应该成为团队统一入口。例如：
+
+```json title="package.json"
+{
+  "scripts": {
+    "dev": "next dev",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "build": "next build",
+    "eval": "tsx scripts/run-eval.ts"
+  }
+}
+```
+
+参考：[npm package.json](https://docs.npmjs.com/files/package.json/)。
+
+## 包管理器怎么选
+
+Agent 项目很容易变成 monorepo：Web 应用、工具库、MCP server、CLI、评测脚本、共享类型、数据库 schema 和文档站可能都在一起。包管理器不只是安装依赖，它还决定 workspace、lockfile、脚本执行和依赖复用方式。
+
+| 工具 | 适合场景 | 注意点 |
+| --- | --- | --- |
+| npm | Node.js 默认包管理器。适合简单项目、官方默认路径和最少额外工具。 | workspace 可用，但大型 monorepo 的依赖隔离体验不如 pnpm。 |
+| pnpm | 适合 monorepo、workspace、多 package、依赖复用和更严格的依赖结构。本站默认更推荐。 | 某些依赖如果错误假设扁平 `node_modules`，可能需要配置兼容。 |
+| Yarn | 成熟的 workspace 生态，适合已有 Yarn 项目或团队已有约定。 | Yarn 版本差异较大，要明确 classic 还是 modern。 |
+| Bun | 同时提供 runtime、bundler、test runner 和 package manager，适合快速脚本和探索。 | 生产依赖兼容、部署环境和 lockfile 策略要验证。 |
+
+需要理解的核心概念：
+
+- lockfile：锁定依赖版本，保证团队和 CI 安装一致。
+- workspace：把多个 package 组织在一个仓库里。
+- dependency 类型：`dependencies` 给运行时，`devDependencies` 给构建和测试，`peerDependencies` 给插件/库的宿主约束。
+- script runner：用同一命令在 root 或 workspace package 中运行任务。
+- catalog/override/resolution：统一依赖版本，解决冲突或安全问题。
+
+参考：[npm workspaces](https://docs.npmjs.com/cli/v10/using-npm/workspaces/)、[pnpm](https://pnpm.io/)、[pnpm workspaces](https://pnpm.io/workspaces)、[Yarn workspaces](https://yarnpkg.com/features/workspaces)、[Bun package manager](https://bun.com/package-manager)。
+
+## Monorepo 结构
+
+TypeScript Agent 项目建议尽早把共享类型和入口应用拆开，不要把所有逻辑堆在一个 `app` 目录里。
+
+```txt title="typescript-agent-monorepo"
+apps/
+  web/
+    app/
+      api/chat/route.ts
+      agent/page.tsx
+packages/
+  agent-core/
+    src/messages.ts
+    src/tools.ts
+    src/state.ts
+    src/artifacts.ts
+  mcp-server/
+    src/server.ts
+  cli/
+    src/index.ts
+  tui/
+    src/app.tsx
+  evals/
+    src/run-eval.ts
+```
+
+其中：
+
+- `apps/web` 承载 Next.js 页面、API route、streaming UI 和用户操作。
+- `packages/agent-core` 放共享 message、tool schema、state、trace 和 artifact 类型。
+- `packages/mcp-server` 把内部能力暴露为 MCP tool/resource。
+- `packages/cli` 放开发者命令，例如运行评测、索引文档、触发任务。
+- `packages/tui` 放终端交互界面，例如本地 Agent 控制台。
+- `packages/evals` 放评测脚本、fixture 和结果格式。
+
+关键原则：共享协议放在稳定 package 里，产品入口、协议服务、CLI、TUI 和评测分开演进。
+
+## Runtime 选择
+
+| Runtime | 默认判断 |
+| --- | --- |
+| Node.js | 生产默认优先。生态最大，部署平台支持最好，兼容 AI SDK、MCP、Next.js、CLI 和大多数 npm 包。 |
+| Bun | 适合快速脚本、一体化工具链、轻量服务和本地实验。正式生产前要验证依赖兼容、部署环境和构建行为。 |
+| Deno | 适合安全默认、TypeScript 原生、现代 Web API 和探索型 runtime。生产选型要看 npm 兼容、团队熟悉度和部署环境。 |
+| Edge runtime | 适合低延迟、短生命周期、无 Node-only API 的请求处理。模型流式代理可以用，但文件系统、子进程和长任务不适合。 |
+
+对于 Damn Agent 这种学习文档站，默认建议是：生产 Web 和 Agent 产品层先用 Node.js；局部脚本或实验可以试 Bun/Deno；部署到 Edge 前必须确认没有用 `fs`、子进程、原生模块和长任务。
+
+参考：[Deno Runtime](https://docs.deno.com/runtime/)。
+
+## TypeScript Agent 常用框架
+
+| 框架/SDK | 适合做什么 | 什么时候先看 |
+| --- | --- | --- |
+| [Vercel AI SDK](https://ai-sdk.dev/docs/introduction) | TypeScript AI 应用基础工具，适合 streaming、tool calling、structured output、UI message 和多 provider 集成。 | 你要做 Web 产品、聊天 UI、工具调用展示和模型 provider 抽象。 |
+| [Mastra Agents](https://mastra.ai/docs/agents/overview) | 面向 TypeScript 应用组织 Agent、tool、workflow 和产品集成。 | 你想在 TypeScript 应用内快速组织 Agent 和 workflow。 |
+| [LangChain.js](https://docs.langchain.com/oss/javascript/langchain/overview) | JavaScript/TypeScript 生态里的 LLM 应用组件，适合模型、tool、retriever 等组合。 | 你需要组件化组合模型、retriever、tool 和 chain。 |
+| [LangGraph.js](https://docs.langchain.com/oss/javascript/langgraph/overview) | 用图和状态机组织多步骤 Agent、可控流程和复杂状态。 | 你需要明确状态图、可恢复流程、多步骤控制流。 |
+| [OpenAI Agents SDK TypeScript](https://openai.github.io/openai-agents-js/) | OpenAI 官方 TypeScript Agent SDK，适合 tools、handoffs、guardrails 和 tracing。 | 你主要使用 OpenAI Agent 抽象并需要 handoff、guardrail、trace。 |
+| [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) | 实现 Model Context Protocol client/server，让 Agent 标准化连接工具、资源和 prompt。 | 你要把内部工具开放给多个 Agent 客户端或接入外部 MCP server。 |
+
+选型时可以按复杂度递进：
+
+1. 只做简单模型调用和工具调用，先看 Vercel AI SDK。
+2. 要把 Agent、工具和 workflow 放进 TypeScript 应用，考虑 Mastra。
+3. 要做复杂图编排和状态机，考虑 LangGraph.js。
+4. 要接 OpenAI Agents 的 handoff、tracing、guardrail，考虑 OpenAI Agents SDK TypeScript。
+5. 要把内部工具标准化暴露给多个 Agent 客户端，优先实现 MCP server。
+
+不要一开始就同时引入多个 Agent 框架。先确认系统核心抽象：是 UI streaming、workflow、graph state、handoff，还是工具协议标准化。抽象不同，框架选择就不同。
+
+## Vercel AI SDK 放在哪里
+
+Vercel AI SDK 适合产品层：它的重点是模型调用、streaming、tool calling、structured output 和 UI message。典型位置：
+
+- `app/api/chat/route.ts` 里处理 streaming response。
+- shared package 里定义 tool schema。
+- 前端组件里消费 UI message。
+- 服务端 action 中触发短任务或生成结构化结果。
+
+不建议把所有后台长任务都塞进一个聊天 API route。长任务、爬虫、批量评测、文件处理和高风险工具应该进入队列、worker 或独立服务。
+
+## MCP 放在哪里
+
+MCP 解决的是 Agent 如何标准化发现并调用外部工具、资源和 prompt。TypeScript 生态里，MCP server 常见用途包括：
+
+- 暴露项目文档搜索。
+- 暴露数据库只读查询。
+- 暴露内部运维工具。
+- 暴露文件系统受限读写。
+- 暴露浏览器自动化或爬虫控制能力。
+
+MCP server 不应该直接变成“什么都能做”的超级后门。每个 tool 都要有输入 schema、权限边界、超时、审计和错误语义。
+
+## CLI 与终端 UI
+
+很多 Agent 工具不一定先做 Web UI。对于开发者工具、爬虫控制、代码索引、批量评测和本地运维，CLI 或终端 UI 可能更快交付。
+
+| 工具 | 适合场景 |
+| --- | --- |
+| [Commander.js](https://github.com/tj/commander.js/blob/master/Readme.md) | 轻量命令行参数解析，适合单仓库脚本和简单 CLI。 |
+| [oclif](https://oclif.github.io/docs/introduction/) | 复杂 CLI 框架，适合多命令、插件化、发布和长期维护。 |
+| [Ink](https://github.com/vadimdemedes/ink) | 用 React 写终端 UI，适合进度、选择、日志、交互式 Agent 控制台。 |
+| [Blessed](https://github.com/chjj/blessed) | curses 风格终端界面，适合更底层的终端布局和面板式 TUI。 |
+
+建议从 Commander.js 开始做最小 CLI；当命令数量和发布需求上来后再考虑 oclif；当需要持续展示模型输出、任务进度、工具调用和人工选择时，再引入 Ink。
+
+## CLI 设计建议
+
+一个 Agent CLI 至少要考虑：
+
+- 配置读取：命令参数、环境变量、配置文件的优先级。
+- 输出格式：人读日志和机器读 JSON 分开。
+- 退出码：成功、业务失败、参数错误、外部服务错误要可区分。
+- 交互模式：非交互 CI 和本地交互不要混在一起。
+- 审计：高风险命令输出执行摘要。
+- dry run：部署、删除、批处理和写入类命令优先支持 dry run。
+
+```ts title="cli-command-shape.ts" lineNumbers
+type CliResult =
+  | { ok: true; summary: string; data?: unknown }
+  | { ok: false; errorType: "usage" | "network" | "permission" | "runtime"; message: string };
+```
+
+这种结构方便 CLI 同时支持漂亮文本输出和 `--json` 输出。
+
+## TUI 适合展示什么
+
+终端 UI 适合长期运行、需要操作反馈但不值得做完整 Web 页面的问题。例如：
+
+- 当前 Agent 任务列表。
+- 模型流式输出。
+- 工具调用状态。
+- 日志尾随。
+- 人工确认选择。
+- 多节点/多 worker 状态。
+- 本地文件索引进度。
+
+Ink 的优势是 React 心智模型，适合已有 React/TypeScript 团队；Blessed 更接近传统终端面板，适合需要精细控制布局的场景。
+
+## 测试与质量
+
+TypeScript Agent 生态至少需要四类检查：
+
+| 检查 | 覆盖什么 |
+| --- | --- |
+| `tsc --noEmit` | 类型协议、边界调用、未处理状态。 |
+| ESLint | 代码风格、React hooks、潜在 bug、导入规则。 |
+| 单元测试 | tool adapter、schema、状态机、纯函数。 |
+| 集成测试 | API route、MCP server、CLI 命令、模型 mock、流式事件。 |
+
+模型调用本身不适合完全依赖 snapshot，但工具输入输出、状态机迁移、JSON schema、CLI `--json` 输出和 API response 都应该测试。
+
+## 部署边界
+
+Node.js Agent 应用部署时要提前确认：
+
+- 运行环境支持的 Node.js 版本。
+- 是否能访问文件系统。
+- 是否允许长任务。
+- 是否允许子进程。
+- 环境变量如何注入和轮换。
+- streaming response 是否被平台代理缓冲。
+- MCP server 使用 stdio、SSE 还是 HTTP transport。
+- 日志、trace、tool result 和 artifact 存在哪里。
+
+短请求可以放 Web runtime，长任务应该进 worker 或队列。能取消、能重试、能观测，比“能跑通一次”更重要。
+
+## 常见错误
+
+- 把长任务、文件处理、爬虫和模型流式聊天都塞进一个 API route。
+- CLI 只输出彩色日志，没有 `--json`，无法被其他工具调用。
+- MCP server 没有权限和超时控制，暴露过宽。
+- 包管理器混用，`package-lock.json`、`pnpm-lock.yaml`、`yarn.lock` 同时存在。
+- Edge runtime 里误用 `fs`、子进程或 Node-only 原生模块。
+- monorepo 内部 package 互相深层 import，后续重构困难。
+
+## 推荐学习路径
+
+1. 先读 [Node.js Learn](https://nodejs.org/learn)，理解 runtime、异步、文件系统和 HTTP。
+2. 读 [Node.js ESM](https://nodejs.org/api/esm.html) 和 [Node.js Packages](https://nodejs.org/api/packages.html)，解决模块与包边界。
+3. 熟悉 [npm package.json](https://docs.npmjs.com/files/package.json/) 和 [pnpm workspaces](https://pnpm.io/workspaces)，建立 monorepo 基础。
+4. 用 Vercel AI SDK 做一个最小 streaming + tool calling demo。
+5. 把一个内部工具包装成 MCP server。
+6. 用 Commander.js 写一个 `agent eval --json` 命令。
+7. 当任务需要持续交互时，再用 Ink 做 TUI 控制台。
+
+## 延伸阅读
+
+- [Node.js Learn](https://nodejs.org/learn)
+- [Node.js ESM](https://nodejs.org/api/esm.html)
+- [Node.js Packages](https://nodejs.org/api/packages.html)
+- [Node.js CLI](https://nodejs.org/api/cli.html)
+- [npm package.json](https://docs.npmjs.com/files/package.json/)
+- [npm workspaces](https://docs.npmjs.com/cli/v10/using-npm/workspaces/)
+- [pnpm](https://pnpm.io/)
+- [pnpm workspaces](https://pnpm.io/workspaces)
+- [Yarn workspaces](https://yarnpkg.com/features/workspaces)
+- [Bun package manager](https://bun.com/package-manager)
+- [Deno Runtime](https://docs.deno.com/runtime/)
+- [Vercel AI SDK](https://ai-sdk.dev/docs/introduction)
+- [Mastra Agents](https://mastra.ai/docs/agents/overview)
+- [LangChain.js](https://docs.langchain.com/oss/javascript/langchain/overview)
+- [LangGraph.js](https://docs.langchain.com/oss/javascript/langgraph/overview)
+- [OpenAI Agents SDK TypeScript](https://openai.github.io/openai-agents-js/)
+- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
+- [Commander.js](https://github.com/tj/commander.js/blob/master/Readme.md)
+- [oclif](https://oclif.github.io/docs/introduction/)
+- [Ink](https://github.com/vadimdemedes/ink)
+- [Blessed](https://github.com/chjj/blessed)

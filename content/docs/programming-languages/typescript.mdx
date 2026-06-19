@@ -3,36 +3,430 @@ title: TypeScript
 description: TypeScript 是智能体工程第一编程语言，重点用于产品化 Agent、工具调用、UI、SDK 集成和全栈应用。
 ---
 
-TypeScript 是本站第一优先级语言。原因不是语法流行，而是当前智能体产品化的大部分关键边界都落在 TypeScript 生态里：Web UI、流式交互、工具调用展示、Server Actions、API routes、MCP client/server、Vercel AI SDK、Mastra、前端状态和部署平台集成。
+TypeScript 是本站第一优先级语言。它不是“更复杂的 JavaScript”，而是给 JavaScript 程序增加静态类型检查，让工具参数、模型消息、UI 状态、服务端接口、数据库记录和 SDK 集成可以被写成明确契约。
 
-## 需要掌握的基础
+这对 Agent 工程尤其重要。Agent 系统里有很多会持续变化的数据：用户消息、模型流式输出、工具调用、工具结果、人工确认、任务进度、trace、artifact、错误和重试状态。如果这些数据只靠口头约定，很快会在前端、后端、数据库、队列和工具服务之间失真。TypeScript 的价值，就是让这些边界尽早暴露出来。
 
-- 类型系统：interface、type、union、generic、discriminated union、type narrowing。
-- 异步模型：Promise、async/await、stream、AbortController、并发和取消。
-- 模块系统：ESM、package exports、monorepo、路径别名、server/client boundary。
-- Runtime：Node.js、Edge runtime、Bun、浏览器环境的差异。
-- Schema：Zod、JSON Schema、工具参数校验、结构化输出类型。
-- 测试：unit test、integration test、mock tool、fixture、snapshot。
-- 工程化：pnpm、tsconfig、eslint、formatter、build、CI。
+## TypeScript 解决什么
+
+JavaScript 适合快速表达行为，但大型 Agent 产品需要更强的协议约束。TypeScript 的核心作用不是让代码显得高级，而是让团队在改代码时知道哪些地方会被影响。
+
+| 问题 | 没有类型时 | 用 TypeScript 后 |
+| --- | --- | --- |
+| 工具参数 | prompt 里写“需要 query 和 limit”，运行时才发现缺字段。 | `ToolInput` 和 schema 同步约束，调用前就能发现缺字段。 |
+| 消息结构 | 前端不知道某条消息是不是工具结果。 | `role`、`type`、`status` 明确区分 message part。 |
+| 流式事件 | token、tool call、error 混在一起靠字符串判断。 | 用 discriminated union 表达事件种类。 |
+| API 返回 | 页面靠猜字段渲染，后端改字段容易静默坏掉。 | API response 类型变化会影响调用方。 |
+| 长期演进 | JSON 越写越大，字段含义模糊。 | 类型名、状态机和版本字段帮助迁移。 |
+
+TypeScript 不能替代运行时校验。外部输入、模型输出、HTTP body、数据库 JSON 和工具参数仍需要 Zod、JSON Schema 或其他校验器。TypeScript 负责“写代码时知道类型”，schema 负责“运行时确认数据真的符合预期”。
+
+## 学习目标
+
+| 阶段 | 要能做到什么 |
+| --- | --- |
+| 入门 | 能读懂基础类型、对象类型、函数类型、interface、union、optional、readonly 和类型推断。 |
+| 工程 | 能用 type narrowing、generic、utility type、discriminated union 和 `tsconfig` 描述真实业务状态。 |
+| Agent | 能把 tool schema、message、tool call/result、streaming state、approval state 和 MCP 边界建成可演进类型。 |
+| 产品化 | 能结合 Node.js、React/Next.js、Zod、AI SDK、Mastra、MCP SDK 做端到端 Agent 应用。 |
+
+## 基础类型：先把数据形状说清楚
+
+TypeScript 的基础不是把每个变量都手写类型，而是学会让类型系统帮你表达边界。
+
+| 特性 | Agent 工程中的用途 |
+| --- | --- |
+| `string` / `number` / `boolean` | 描述任务 ID、模型名、分数、开关和配置项。 |
+| array / tuple | 表达消息列表、检索结果、固定结构坐标或 token usage。 |
+| object type | 描述 message、tool、trace、artifact、task 等结构化数据。 |
+| function type | 约束工具执行函数、事件回调、stream handler、middleware。 |
+| `interface` | 定义可扩展对象协议，适合 SDK、服务接口和领域模型。 |
+| `type` | 定义 union、intersection、literal、utility 派生类型。 |
+| literal type | 把 `"pending"`、`"running"`、`"failed"` 这类状态固定下来。 |
+| optional / readonly | 区分“可缺省字段”和“创建后不应改动字段”。 |
+| `unknown` | 接收外部不可信数据，先校验再使用。 |
+| `never` | 做穷尽检查，确保状态分支没有漏处理。 |
+
+例如，Agent 消息不要只写成松散的 `any`：
+
+```ts title="agent-message.ts" lineNumbers
+type TextMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+type ToolResultMessage = {
+  role: "tool";
+  toolName: string;
+  output: unknown;
+};
+
+type AgentMessage = TextMessage | ToolResultMessage;
+
+function renderMessage(message: AgentMessage) {
+  if (message.role === "tool") {
+    return `${message.toolName}: ${JSON.stringify(message.output)}`;
+  }
+
+  return message.content;
+}
+```
+
+这里的关键不是代码短，而是 `role` 让 TypeScript 自动收窄类型。进入 `message.role === "tool"` 分支后，`toolName` 和 `output` 才是合法字段。
+
+## Interface 和 Type 怎么选
+
+初学者常纠结 `interface` 和 `type`。在 Agent 工程里可以按用途选择：
+
+| 场景 | 建议 |
+| --- | --- |
+| 描述一个会被实现、扩展或导出的对象协议 | 用 `interface`。 |
+| 描述 union、literal、tuple、utility 派生类型 | 用 `type`。 |
+| 描述 SDK 或插件希望别人实现的边界 | 用 `interface` 更自然。 |
+| 描述状态机、事件流、消息 part | 用 `type` + union 更清楚。 |
+
+```ts title="interface-and-type.ts" lineNumbers
+interface ToolRunner<Input, Output> {
+  run(input: Input): Promise<Output>;
+}
+
+type ToolRisk = "low" | "medium" | "high";
+
+type ToolExecution =
+  | { status: "queued" }
+  | { status: "running"; startedAt: string }
+  | { status: "done"; output: unknown }
+  | { status: "failed"; error: string };
+```
+
+不要把规则绝对化。真正重要的是团队一致、边界清楚、读者能一眼看出类型表达的是“对象协议”还是“状态集合”。
+
+## Union、Literal 和类型收窄
+
+Agent 系统里大量状态都不是简单 boolean。任务可能排队、运行、等待人工确认、成功、失败、取消；工具调用可能已经生成但未执行、正在执行、需要审批、执行完成或超时。用 union 和 literal type 表达这些状态，比堆 optional 字段更可靠。
+
+```ts title="task-state.ts" lineNumbers
+type TaskState =
+  | { status: "queued"; createdAt: string }
+  | { status: "running"; startedAt: string }
+  | { status: "waiting_approval"; toolCallId: string; reason: string }
+  | { status: "succeeded"; finishedAt: string; artifactId?: string }
+  | { status: "failed"; finishedAt: string; error: string }
+  | { status: "cancelled"; finishedAt: string; cancelledBy: "user" | "system" };
+
+function describeTask(state: TaskState) {
+  switch (state.status) {
+    case "queued":
+      return "任务已进入队列";
+    case "running":
+      return `任务开始于 ${state.startedAt}`;
+    case "waiting_approval":
+      return `等待确认：${state.reason}`;
+    case "succeeded":
+      return "任务已完成";
+    case "failed":
+      return `任务失败：${state.error}`;
+    case "cancelled":
+      return `任务已取消：${state.cancelledBy}`;
+  }
+}
+```
+
+这种写法让每个状态拥有自己的字段。你不会在 `running` 状态里误读 `error`，也不会在 `failed` 状态里误以为一定有 `artifactId`。
+
+## 穷尽检查
+
+当状态变多后，最容易出错的是漏处理新状态。可以用 `never` 做穷尽检查：
+
+```ts title="exhaustive-check.ts" lineNumbers
+function assertNever(value: never): never {
+  throw new Error(`Unhandled state: ${JSON.stringify(value)}`);
+}
+
+function taskBadge(state: TaskState) {
+  switch (state.status) {
+    case "queued":
+      return "排队";
+    case "running":
+      return "运行中";
+    case "waiting_approval":
+      return "待确认";
+    case "succeeded":
+      return "成功";
+    case "failed":
+      return "失败";
+    case "cancelled":
+      return "已取消";
+    default:
+      return assertNever(state);
+  }
+}
+```
+
+以后如果给 `TaskState` 新增 `"paused"`，但忘了更新 `taskBadge`，TypeScript 会在 `assertNever(state)` 处提醒你。
+
+## Generics：把输入输出关系保留下来
+
+Generics 不是为了把类型写得复杂，而是为了保留“输入是什么，输出就是什么”的关系。Agent 工具定义、缓存、API response、事件总线和数据库 repository 都常用它。
+
+```ts title="generic-tool.ts" lineNumbers
+type ToolDefinition<Input, Output> = {
+  name: string;
+  description: string;
+  run(input: Input): Promise<Output>;
+};
+
+async function runTool<Input, Output>(
+  tool: ToolDefinition<Input, Output>,
+  input: Input,
+): Promise<Output> {
+  return tool.run(input);
+}
+```
+
+这段代码保留了工具的输入输出关系。调用 `runTool(searchTool, input)` 时，返回值会被推导为搜索工具自己的输出类型，而不是退化成 `unknown` 或 `any`。
+
+## Utility Types：从已有类型派生
+
+Agent 项目里同一个对象经常有不同阶段：创建参数、数据库记录、更新参数、只读展示、API 返回。不要为每个阶段手写重复字段，可以用 utility types 派生。
+
+```ts title="utility-types.ts" lineNumbers
+type ToolRecord = {
+  id: string;
+  name: string;
+  description: string;
+  risk: "low" | "medium" | "high";
+  createdAt: string;
+  updatedAt: string;
+};
+
+type CreateToolInput = Omit<ToolRecord, "id" | "createdAt" | "updatedAt">;
+type UpdateToolInput = Partial<Pick<ToolRecord, "description" | "risk">>;
+type ToolSummary = Pick<ToolRecord, "id" | "name" | "risk">;
+type ReadonlyToolRecord = Readonly<ToolRecord>;
+```
+
+常用 utility types：
+
+| 类型 | 用途 |
+| --- | --- |
+| `Pick<T, K>` | 从大对象里挑字段。 |
+| `Omit<T, K>` | 从大对象里排除字段。 |
+| `Partial<T>` | 把字段变成可选，适合 patch/update。 |
+| `Required<T>` | 把字段变成必填。 |
+| `Readonly<T>` | 表达不可变视图。 |
+| `Record<K, V>` | 表达 key/value 映射，例如 tool registry。 |
+| `Awaited<T>` | 提取 Promise 解析后的类型。 |
+| `ReturnType<T>` | 从函数里提取返回值类型。 |
+
+## 高级类型：少量使用，服务稳定边界
+
+高级类型的价值是减少重复和固定协议，不是炫技。下面这些特性适合出现在共享库、SDK wrapper、tool registry、message part 和事件系统里。
+
+| 特性 | 什么时候需要 |
+| --- | --- |
+| conditional types | 根据输入类型推导输出类型，适合 SDK wrapper。 |
+| mapped types | 批量转换字段，例如把配置项都变为 optional 或 readonly。 |
+| template literal types | 约束事件名、缓存 key、工具名、路由名。 |
+| indexed access types | 从嵌套对象中提取字段类型。 |
+| `satisfies` | 校验对象符合某个类型，同时保留字面量推断。 |
+
+```ts title="tool-registry.ts" lineNumbers
+type ToolName = "search_docs" | "read_file" | "create_issue";
+type ToolEventName = `tool.${ToolName}.started` | `tool.${ToolName}.finished`;
+
+const toolLabels = {
+  search_docs: "搜索文档",
+  read_file: "读取文件",
+  create_issue: "创建 Issue",
+} satisfies Record<ToolName, string>;
+
+function emitToolEvent(eventName: ToolEventName) {
+  return eventName;
+}
+
+emitToolEvent("tool.search_docs.started");
+```
+
+`satisfies` 很适合配置对象：它会检查对象覆盖了所有工具名，但不会把每个值都粗暴变成普通 `string`。
+
+## 工具 Schema 与运行时校验
+
+Agent 工具不能只写一个函数名。一个可上线工具至少要有输入 schema、输出语义、权限等级、超时、失败语义和审计记录。TypeScript 的优势是可以让 schema 和代码类型互相靠近。
+
+```ts title="tool-definition.ts" lineNumbers
+import { z } from "zod";
+
+const searchInputSchema = z.object({
+  query: z.string().min(1),
+  limit: z.number().int().min(1).max(20).default(5),
+});
+
+type SearchInput = z.infer<typeof searchInputSchema>;
+
+type ToolDefinition<Input, Output> = {
+  name: string;
+  description: string;
+  inputSchema: z.ZodType<Input>;
+  risk: "low" | "medium" | "high";
+  timeoutMs: number;
+  run(input: Input): Promise<Output>;
+};
+
+const searchTool: ToolDefinition<SearchInput, { title: string; url: string }[]> = {
+  name: "search_docs",
+  description: "搜索项目文档",
+  inputSchema: searchInputSchema,
+  risk: "low",
+  timeoutMs: 10_000,
+  async run(input) {
+    return [{ title: `搜索：${input.query}`, url: "/docs" }];
+  },
+};
+```
+
+这里的重点是：运行时校验由 Zod 负责，编译期类型由 TypeScript 负责。两者结合后，工具调用不再只是 prompt 里的自然语言约定。
+
+## Tool Call 生命周期
+
+真正的工具调用不是“调用函数并返回结果”这么简单。产品里至少要表达排队、执行、审批、成功、失败、取消和超时。
+
+```ts title="tool-call-lifecycle.ts" lineNumbers
+type ToolCallLifecycle =
+  | { status: "created"; toolCallId: string; toolName: string; input: unknown }
+  | { status: "waiting_approval"; toolCallId: string; reason: string }
+  | { status: "running"; toolCallId: string; startedAt: string }
+  | { status: "succeeded"; toolCallId: string; output: unknown; finishedAt: string }
+  | { status: "failed"; toolCallId: string; error: string; finishedAt: string }
+  | { status: "cancelled"; toolCallId: string; finishedAt: string };
+```
+
+这个类型可以同时服务后端执行器、数据库记录、前端工具调用卡片和 trace viewer。不同层共享同一套状态词，就能避免“后端叫 pending、前端叫 loading、数据库叫 started”这类对齐成本。
+
+## Streaming UI 与 Message 类型
+
+产品化 Agent 往往不是一次性返回完整答案，而是持续输出 token、工具调用、工具结果、进度、确认请求和错误。TypeScript 适合把这些流式事件拆成稳定的 part：
+
+```ts title="ui-message-part.ts" lineNumbers
+type UiMessagePart =
+  | { type: "text-delta"; text: string }
+  | { type: "tool-call"; toolCallId: string; toolName: string; input: unknown }
+  | { type: "tool-result"; toolCallId: string; output: unknown }
+  | { type: "approval-request"; toolCallId: string; reason: string }
+  | { type: "artifact"; artifactId: string; title: string; mimeType: string }
+  | { type: "error"; message: string };
+
+type UiMessage = {
+  id: string;
+  role: "user" | "assistant" | "tool";
+  parts: UiMessagePart[];
+  createdAt: string;
+};
+```
+
+当消息结构稳定后，前端可以可靠地渲染工具调用卡片、进度条、错误提示、artifact 链接和人工确认按钮；后端也能把同一套结构落库、回放、追踪和重试。
+
+## API、数据库和 Artifact 类型
+
+Agent 项目不要只给 UI message 建类型。下面几类数据也应该有独立类型：
+
+| 数据 | 为什么要独立建模 |
+| --- | --- |
+| API request/response | 服务端接口是产品层和执行层的契约。 |
+| database record | 数据库字段通常包含审计、版本、索引和迁移信息，不应直接等同 UI 类型。 |
+| queue payload | 队列消息要稳定、可重试、可幂等。 |
+| artifact | 代码、报告、图片、PDF、抓取结果都需要 mime type、来源和生命周期。 |
+| trace span | 排查 Agent 行为时需要可关联的输入、输出、耗时和错误。 |
+
+```ts title="artifact-types.ts" lineNumbers
+type ArtifactKind = "markdown" | "json" | "image" | "pdf" | "code";
+
+type ArtifactRecord = {
+  id: string;
+  kind: ArtifactKind;
+  title: string;
+  uri: string;
+  createdByTaskId: string;
+  createdAt: string;
+  metadata: Record<string, unknown>;
+};
+```
+
+不要把所有字段都塞进 `metadata`。只有不稳定、扩展性强、展示层不直接依赖的字段才适合放 metadata。
+
+## Server/Client Boundary
+
+TypeScript 全栈项目最容易混淆 server/client 边界。Agent 产品通常同时有浏览器组件、服务端路由、数据库访问、模型调用、工具调用和队列任务。建议把类型分层：
+
+| 层 | 可以放什么 |
+| --- | --- |
+| shared | message、tool schema、API DTO、状态枚举、无副作用纯类型。 |
+| server | 数据库、模型 key、工具执行、文件系统、队列、MCP server。 |
+| client | UI state、组件 props、浏览器事件、用户输入、乐观更新。 |
+
+不要把带 API key、数据库连接或文件系统访问的模块从 client component 引入。共享类型最好放在没有副作用的文件里，例如 `src/agent/types.ts` 或 monorepo 的 `packages/agent-core`。
+
+## tsconfig 与 strict mode
+
+`tsconfig.json` 决定 TypeScript 到底严格到什么程度。Agent 工程建议默认开启严格模式，尤其注意这些配置：
+
+| 配置 | 建议 |
+| --- | --- |
+| `strict` | 建议开启，统一启用严格检查。 |
+| `noImplicitAny` | 避免隐式 `any` 进入核心协议。 |
+| `strictNullChecks` | 区分 `null`、`undefined` 和真实值。 |
+| `noUncheckedIndexedAccess` | 访问数组或对象索引时更谨慎，适合处理外部数据。 |
+| `moduleResolution` | 现代 Node/Next 项目通常要理解 `bundler` 或 `node16` 差异。 |
+| `paths` | 用于 monorepo 或应用内路径别名，但不要滥用到难以追踪依赖。 |
+
+`strict` 可能让早期迁移变慢，但对 Agent 项目的核心数据结构值得。工具调用、消息状态和审计记录一旦变成 `any`，后续问题通常更难修。
+
+## 模块系统与包发布
+
+TypeScript 项目最终要运行在 Node.js、浏览器、Edge runtime 或构建工具里。需要理解：
+
+- ESM 和 CJS 的导入导出差异。
+- `package.json` 里的 `type`、`exports`、`main`、`types`。
+- 类型声明文件 `.d.ts` 的作用。
+- monorepo 内部 package 如何暴露稳定入口。
+- server-only 模块和 client-safe 类型如何分离。
+
+Agent 项目常见做法是：共享类型包只导出类型、schema 和纯函数；服务端包导出模型调用、工具执行、数据库和 MCP server；前端包只消费安全的 DTO 和 UI 类型。
 
 ## Agent 工程重点
 
-- 工具调用 schema 如何和类型系统绑定。
-- Streaming UI 如何表达模型输出、工具调用、暂停、失败和人工确认。
-- Agent state 如何在 server、client、database 和 URL 之间传递。
-- 如何用 TypeScript 写 MCP server、MCP client、HTTP tool 和 browser tool。
-- 如何把 trace、message、tool result、artifact 设计成可演进的数据结构。
+| 主题 | TypeScript 要解决的问题 |
+| --- | --- |
+| tool schema | 输入输出必须可校验、可推导、可复用。 |
+| streaming state | token、工具调用、工具结果、错误和确认请求需要统一事件模型。 |
+| server/client boundary | React client component、server action、API route 和数据库之间要有清晰边界。 |
+| MCP client/server | resource、tool、prompt、transport 等协议对象需要稳定类型。 |
+| SDK 集成 | OpenAI、Vercel AI SDK、Mastra、LangChain.js 等 API 变化快，要用类型保护调用边界。 |
+| 可演进数据结构 | message、trace、artifact、task 不应写成不可迁移的大 JSON。 |
 
-## 适合承载的内容
+## 常见错误
 
-- 产品化 Agent 前端和后端。
-- Chat UI、任务进度、trace viewer、人工确认界面。
-- 工具编排、API route、server action、workflow glue code。
-- 面向 Web 平台的开源智能体项目拆解。
+- 把所有模型输出都写成 `any`，导致 UI 和存储层无法知道真实结构。
+- 工具输入只靠 prompt 描述，没有运行时 schema，也没有 TypeScript 类型。
+- 用一个包含十几个 optional 字段的大对象表达状态，最后每个分支都要猜字段是否存在。
+- 不开 `strict`，让 `undefined`、`null` 和隐式 `any` 进入核心协议。
+- 把数据库记录、API DTO、UI props 和队列 payload 混成一个类型，导致任何一层变更都影响全局。
+- 不理解 ESM、CJS、package exports 和路径别名，导致本地能跑、构建或发布失败。
 
-## 后续应补内容
+## 学习路径
 
-- Agent 工具 schema 的 TypeScript 示例。
-- Vercel AI SDK streaming + tool calling 最小例子。
-- MCP TypeScript server/client 示例。
-- Agent UI message 类型设计案例。
+1. 先读官方 [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html) 的基础章节。
+2. 重点掌握 [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html)、[Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)、[Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)。
+3. 继续学习 [Object Types](https://www.typescriptlang.org/docs/handbook/2/objects.html)、[Creating Types from Types](https://www.typescriptlang.org/docs/handbook/2/types-from-types.html)、[Modules](https://www.typescriptlang.org/docs/handbook/2/modules.html)。
+4. 在真实 Agent 项目里练习四类类型：tool definition、UI message、task state、artifact record。
+5. 再进入 [Node.js 与 TypeScript 生态](/docs/programming-languages/nodejs-ecosystem)，学习 runtime、包管理器、Agent 框架和 CLI/TUI。
+
+## 延伸阅读
+
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [Everyday Types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html)
+- [Narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+- [Generics](https://www.typescriptlang.org/docs/handbook/2/generics.html)
+- [Object Types](https://www.typescriptlang.org/docs/handbook/2/objects.html)
+- [Creating Types from Types](https://www.typescriptlang.org/docs/handbook/2/types-from-types.html)
+- [TypeScript Modules](https://www.typescriptlang.org/docs/handbook/2/modules.html)

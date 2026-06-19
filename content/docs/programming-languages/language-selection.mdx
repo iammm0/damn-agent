@@ -5,6 +5,8 @@ description: 按 Agent 产品、模型实验、工具服务、运行时和 AI in
 
 语言选型先看系统边界，而不是先看个人偏好。Agent 项目通常同时包含产品 UI、模型调用、工具执行、任务调度、检索系统、评测系统和运行时隔离，不同层的语言选择可以不同。
 
+一个简单但有效的判断方式是：先问“这段代码主要在保护什么边界”。如果它保护的是用户体验和前后端接口，优先 TypeScript；如果它保护的是模型实验效率和数据处理效率，优先 Python；如果它保护的是服务稳定性和并发吞吐，优先 Go；如果它保护的是本地运行时、沙箱和安全边界，优先 Rust。
+
 ## 推荐分层
 
 | 系统层 | 推荐语言 | 说明 |
@@ -15,6 +17,19 @@ description: 按 Agent 产品、模型实验、工具服务、运行时和 AI in
 | 工具服务和调度控制面 | Go | 高并发服务、队列消费、节点管理、HTTP/gRPC 服务和部署运维更直接。 |
 | Sandbox、runtime、CLI 和安全边界 | Rust | 内存安全、性能、跨平台分发和底层解析场景更强。 |
 
+## 决策表
+
+| 你要做什么 | 默认选择 | 为什么 |
+| --- | --- | --- |
+| Chat UI、任务进度、工具调用卡片、人工确认 | TypeScript | UI 状态、服务端接口和流式事件可以共享类型，适合产品化。 |
+| Next.js API route、Server Action、MCP client/server | TypeScript | Node.js 生态与 Web 产品层贴近，适合把工具 schema 和 UI message 串起来。 |
+| RAG pipeline、文档解析、embedding、rerank | Python | 数据处理、模型实验、notebook 和检索生态更完整。 |
+| 离线评测、golden tasks、LLM-as-Judge | Python | 写批处理脚本、pytest fixture 和评测报告更直接。 |
+| 任务调度、队列 worker、节点控制面 | Go | 并发、部署、健康检查、超时取消和运维接口更稳定。 |
+| 高风险工具网关、长任务服务、爬虫调度 | Go | `context.Context`、HTTP/gRPC、pprof、race detector 对生产服务友好。 |
+| 本地 CLI、文件索引、代码解析、diff/search | Rust | 性能、跨平台分发和内存安全更适合本地工具。 |
+| Sandbox、插件运行时、权限隔离 | Rust | 所有权模型和显式错误处理更适合构建强边界。 |
+
 ## 决策问题
 
 1. 这个模块是面向用户交互、模型实验、后台服务还是运行时底层。
@@ -23,9 +38,30 @@ description: 按 Agent 产品、模型实验、工具服务、运行时和 AI in
 4. 是否对并发、部署体积、启动速度和运维成本敏感。
 5. 是否涉及 sandbox、权限隔离、解析器或跨平台 CLI。
 
+## 常见组合
+
+| 组合 | 适合场景 |
+| --- | --- |
+| TypeScript + Python | 最常见。TypeScript 做产品界面和 API，Python 做 RAG、评测、数据处理和研究原型。 |
+| TypeScript + Go | 产品层由 TypeScript 承担，Go 承担队列、调度、节点控制、工具网关和爬虫控制面。 |
+| TypeScript + Rust | 产品层由 TypeScript 承担，Rust 做本地 CLI、sandbox、parser、runtime 或高性能组件。 |
+| TypeScript + Python + Go | Agent 产品、模型实验、infra 控制面同时存在时的稳妥组合。 |
+| TypeScript + Python + Go + Rust | 系统进入多平台、本地运行时、沙箱、安全执行和高性能工具阶段后再引入。 |
+
 ## 不建议的做法
 
 - 不要因为 Python 生态强，就把产品 UI 和所有工具服务都写成 Python。
 - 不要因为 TypeScript 适合产品，就忽略 Python 在 RAG、评测和模型实验中的效率。
 - 不要过早用 Rust 重写业务逻辑，除非确实有运行时、安全或性能边界。
 - 不要把 Go/Rust 当作协作者第一期必须精通的语言，它们应作为 AI infra 能力储备逐步补齐。
+
+## 默认建议
+
+如果没有额外约束，本站采用以下默认选型：
+
+- 产品化 Agent 第一语言是 TypeScript。
+- 模型、RAG、评测和数据处理第一语言是 Python。
+- AI infra 服务、调度控制面和高并发工具服务优先 Go。
+- 安全边界、本地 runtime、CLI、解析器和 sandbox 优先 Rust。
+
+参考资料：[TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)、[Node.js Learn](https://nodejs.org/learn)、[Python Tutorial](https://docs.python.org/3/tutorial/index.html)、[Go Documentation](https://go.dev/doc/)、[The Rust Programming Language](https://doc.rust-lang.org/book/)。
