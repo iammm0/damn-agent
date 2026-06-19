@@ -1,29 +1,42 @@
 ---
 title: 编程语言基础
-description: 面向 AI Agent 工程的语言知识储备：TypeScript 优先，Python 其次，Go 和 Rust 面向 AI infra。
+description: 面向 AI Agent 工程的多语言学习地图：TypeScript 负责产品化，Python 负责模型与数据，Go 和 Rust 负责 infra 与运行时边界。
 ---
 
-这个板块不做普通语法教程，而是整理开发智能体系统需要的编程语言基础。重点顺序是 TypeScript、Python、Go、Rust。
+这个板块不做普通语法教程，而是回答一个更工程化的问题：做 AI Agent 项目时，不同语言分别该学到什么程度、放在什么系统边界里、什么时候不该用它。
+
+一个真正能落地的 Agent 系统通常不只有“模型调用”这一层。它会同时包含用户界面、流式输出、工具调用、记忆、RAG、评测、任务调度、队列、节点控制、沙箱、CLI、可观测性和部署脚本。把这些都塞进一种语言不是不可能，但通常会让系统边界变得模糊。更稳妥的方式是：用合适的语言承载合适的层。
 
 ## 学习优先级
 
 | 优先级 | 语言 | 为什么重要 |
 | --- | --- | --- |
 | 1 | [TypeScript](/docs/programming-languages/typescript) | Agent 产品、Web UI、工具编排、SDK 集成、Vercel AI SDK、Mastra、MCP client/server 都高度依赖 TypeScript 生态。 |
-| 2 | [Python](/docs/programming-languages/python) | 模型实验、RAG、数据处理、评测、LangGraph、LlamaIndex、AutoGen、CrewAI 等生态更成熟。 |
-| 3 | [Go](/docs/programming-languages/go) | 适合 AI infra 中的服务端、任务调度、队列、网关、爬虫调度、节点控制面和高并发工具服务。 |
-| 4 | [Rust](/docs/programming-languages/rust) | 适合 sandbox、runtime、CLI、解析器、向量/检索底层、高性能安全边界和跨平台工具。 |
+| 2 | [Node.js 与 TypeScript 生态](/docs/programming-languages/nodejs-ecosystem) | TypeScript 落地 Agent 产品离不开 Node.js runtime、包管理器、CLI/TUI、MCP、AI SDK 和框架生态。 |
+| 3 | [Python](/docs/programming-languages/python) | 模型实验、RAG、数据处理、评测、notebook、LangGraph、LlamaIndex、AutoGen、CrewAI 等生态更成熟。 |
+| 4 | [Go](/docs/programming-languages/go) | 适合 AI infra 中的服务端、任务调度、队列、网关、爬虫调度、节点控制面和高并发工具服务。 |
+| 5 | [Rust](/docs/programming-languages/rust) | 适合 sandbox、runtime、CLI、解析器、高性能安全边界、跨平台本地工具和底层组件。 |
 
-## 这个板块解决什么
+## 推荐阅读顺序
 
-- 协作者进入 Agent 项目前，需要知道每门语言该掌握到什么深度。
-- 不同板块分工时，需要知道前端、后端、工具、RAG、评测、运行时、infra 分别偏向哪种语言。
-- 拆解开源智能体项目时，需要能读懂 TypeScript、Python、Go、Rust 的常见工程结构。
-- 做技术选型时，需要知道语言生态和部署形态的差异，而不是只按个人熟悉度选。
+1. 先读 [语言选型方法](/docs/programming-languages/language-selection)，建立“系统边界优先”的判断方式。
+2. 读 [TypeScript](/docs/programming-languages/typescript)，理解类型系统如何把工具、消息、状态和接口变成契约。
+3. 读 [Node.js 与 TypeScript 生态](/docs/programming-languages/nodejs-ecosystem)，理解运行时、包管理、Agent 框架、MCP、CLI/TUI 如何组合成产品工程。
+4. 读 [Python](/docs/programming-languages/python)，掌握 RAG、评测、数据处理和模型实验的常见工程边界。
+5. 按 infra 需要读 [Go](/docs/programming-languages/go) 和 [Rust](/docs/programming-languages/rust)：Go 更适合控制面和高并发服务，Rust 更适合安全边界和本地运行时。
 
-## 建设原则
+## 系统层与语言
 
-- TypeScript 是第一编程语言，优先覆盖产品化 Agent、工具调用、UI 和 SDK 集成。
-- Python 是第二编程语言，优先覆盖模型、数据、检索、评测和研究原型。
-- Go 和 Rust 不作为第一期业务功能首选语言，但需要作为 AI infra 推荐语言保留基础板块。
-- 每个语言页都围绕 Agent 工程讲模块系统、异步、类型、测试、包管理、部署、常见项目结构和适用边界。
+| 系统层 | 默认语言 | 学习目标 |
+| --- | --- | --- |
+| Agent 产品 UI | TypeScript | 能写 React/Next.js、流式 UI、工具调用展示、人工确认、trace viewer。 |
+| Agent 编排与产品后端 | TypeScript 优先 | 能定义 tool schema、message state、server action/API route、MCP client/server。 |
+| RAG、数据与评测 | Python 优先 | 能处理文档、embedding、rerank、评测集、LLM-as-Judge 和批处理脚本。 |
+| 工具服务与调度控制面 | Go | 能写稳定的 HTTP/gRPC 服务、worker、队列消费、节点健康检查和限流。 |
+| Sandbox、CLI、runtime | Rust | 能写安全、快、可分发的本地工具、执行器、解析器和隔离边界。 |
+
+## 本板块的写法
+
+每个语言页都按同一条线展开：先说明它在 Agent 工程中的位置，再讲基础特性、高级特性、工程生态、适用边界和延伸阅读。目标不是让读者背语法，而是让读者能读懂开源 Agent 项目、拆清系统边界、写出可维护的第一版实现。
+
+内容主要参考各语言和工具的官方文档，包括 [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)、[Node.js Learn](https://nodejs.org/learn)、[Python Tutorial](https://docs.python.org/3/tutorial/index.html)、[Go Documentation](https://go.dev/doc/) 和 [The Rust Programming Language](https://doc.rust-lang.org/book/)。

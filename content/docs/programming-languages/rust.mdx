@@ -5,34 +5,112 @@ description: Rust 是 AI infra 推荐语言之一，重点用于 sandbox、runti
 
 Rust 适合承担 Agent 系统中的底层运行时、安全边界和高性能工具，而不是一开始就用来写所有业务流程。它的价值在于内存安全、性能、跨平台分发和对系统边界的强约束。
 
-## 需要掌握的基础
+对 Agent 工程来说，Rust 最适合出现在这些位置：本地 CLI、代码解析、文件索引、sandbox、插件运行时、受限进程执行、高性能文本处理、跨平台桌面/终端工具。它不是最快上手的语言，但在边界清晰后很值得投入。
 
-- 所有权、借用、生命周期和错误处理。
-- trait、enum、pattern matching、generic。
-- async runtime：tokio、async trait、timeout、cancel。
-- CLI：clap、config、日志、跨平台发布。
-- 解析和执行：parser、AST、sandbox、进程管理。
-- FFI 和 WASM：和 Node/Python/浏览器的边界。
-- 工程化：cargo、test、bench、feature flag。
+## 学习目标
 
-## Agent infra 重点
+| 阶段 | 要能做到什么 |
+| --- | --- |
+| 入门 | 理解 ownership、borrowing、lifetime、Result、Option、trait、enum 和 pattern matching。 |
+| 工程 | 能使用 cargo、module、feature flag、test、bench、logging 和错误处理。 |
+| Agent infra | 能实现 CLI、文件索引、parser、process runner、sandbox 边界和本地 runtime 组件。 |
+| 集成 | 能通过子进程、FFI、WASM 或服务接口和 TypeScript/Python/Go 协作。 |
 
-- Sandbox 和受限执行环境。
-- 高性能 CLI、文件索引、代码解析、diff、搜索。
-- 浏览器或桌面自动化底层适配器。
-- 本地 runtime、插件系统、权限边界。
-- 向量检索、文本处理和低延迟工具组件。
+## 基础特性
 
-## 适合承载的内容
+| 特性 | Agent infra 中的用途 |
+| --- | --- |
+| ownership | 明确资源由谁拥有，适合文件、进程、socket、缓存和权限对象。 |
+| borrowing | 避免不必要复制，同时保持安全访问。 |
+| lifetime | 描述引用有效期，避免悬垂引用。 |
+| `Result` / `Option` | 显式处理失败和缺省值，适合系统边界。 |
+| trait | 定义插件、存储、执行器、解析器和输出适配器接口。 |
+| enum | 表达状态机、错误类型、AST 节点、命令和事件。 |
+| pattern matching | 清晰处理不同命令、状态、错误和解析结果。 |
+| generic | 写可复用的容器、适配器、执行器和转换函数。 |
+| module | 组织 CLI、runtime、parser、sandbox、config 和 telemetry。 |
+| cargo | 管理依赖、构建、测试、feature 和发布。 |
 
-- 安全敏感运行时。
-- 跨平台 CLI 和本地工具。
-- 高性能解析器、索引器和执行器。
-- 需要强安全边界的 Agent infra 组件。
+Rust 的 `enum` 很适合表达受控状态：
 
-## 后续应补内容
+```rust title="task_event.rs" lineNumbers
+enum TaskEvent {
+    Started { task_id: String },
+    ToolOutput { task_id: String, text: String },
+    Failed { task_id: String, reason: String },
+    Finished { task_id: String },
+}
 
-- Rust CLI tool 的最小结构。
-- sandbox/process runner 的安全边界说明。
-- Rust 与 TypeScript/Python 的 FFI 或子进程协作模式。
-- 适合 Rust 重写的 Agent infra 组件判断清单。
+fn event_name(event: &TaskEvent) -> &'static str {
+    match event {
+        TaskEvent::Started { .. } => "started",
+        TaskEvent::ToolOutput { .. } => "tool_output",
+        TaskEvent::Failed { .. } => "failed",
+        TaskEvent::Finished { .. } => "finished",
+    }
+}
+```
+
+当事件新增一种变体时，编译器会提醒没有处理完整的 `match`。
+
+## 高级特性
+
+| 特性 | 什么时候需要 |
+| --- | --- |
+| tokio async | 写网络服务、异步进程管理、并发文件 I/O 和本地 runtime。 |
+| trait object | 运行时选择不同插件、执行器、parser 或存储实现。 |
+| feature flags | 为不同平台、不同集成和可选能力裁剪构建。 |
+| FFI / WASM | 和 Node.js、Python、浏览器或其他 runtime 集成。 |
+| process runner | 安全启动、取消、收集 stdout/stderr、限制环境变量和工作目录。 |
+| parser / AST | 做代码分析、配置解析、命令语言、规则引擎和 diff 工具。 |
+| unsafe 边界 | 只在必要系统集成中使用，并把范围压到最小。 |
+| 跨平台发布 | 为 macOS、Linux、Windows 生成可分发二进制。 |
+
+Rust 的高级能力应服务边界，而不是服务复杂度。只有当你确实需要性能、隔离、跨平台或内存安全时，它才比 TypeScript/Python 更值得。
+
+## Agent Infra 重点
+
+| 主题 | Rust 要解决的问题 |
+| --- | --- |
+| Sandbox | 约束文件、网络、进程、环境变量和命令执行边界。 |
+| Runtime | 管理本地任务、插件、权限、事件、缓存和执行器。 |
+| CLI | 分发快、启动快、依赖少，适合开发者工具和本地 Agent。 |
+| 文件索引 | 高性能遍历、过滤、增量索引、内容哈希和搜索。 |
+| 代码解析 | AST、符号索引、diff、patch、规则检查和代码导航。 |
+| 插件系统 | 定义稳定 ABI、进程隔离或协议边界。 |
+| 高性能文本处理 | 日志、文档、代码、向量前处理和本地缓存。 |
+
+例如，一个本地 coding agent 可能用 TypeScript 做 UI 和服务端编排，用 Rust 做文件索引、命令执行器和 sandbox。这样既保留产品开发效率，也把危险边界放到更强约束的语言里。
+
+## 不建议的用法
+
+- 不要为了“技术先进”把第一版 Agent 业务流程全写成 Rust。
+- 不要在需求还不稳定时过早设计复杂 trait 层。
+- 不要把 `unsafe` 当作性能捷径，除非能证明必要并把边界封装好。
+- 不要忽视和 TypeScript/Python 的集成成本，Rust 组件应该有清晰输入输出。
+
+## 与其他语言协作
+
+| 边界 | 推荐方式 |
+| --- | --- |
+| TypeScript 调 Rust | 子进程 CLI、Node native addon、WASM 或 HTTP 本地服务。 |
+| Python 调 Rust | 子进程、PyO3、WASM 或把 Rust 包装为独立工具。 |
+| Go 调 Rust | 子进程、FFI 或通过服务接口隔离。 |
+| Rust 输出 artifact | JSON、NDJSON、SQLite、Parquet、日志和结构化事件。 |
+
+最稳妥的第一步通常是 CLI 子进程：输入输出清楚，故障隔离简单，部署和调试成本低。等接口稳定后，再考虑 FFI 或 WASM。
+
+## 学习路径
+
+1. 先读 [The Rust Programming Language](https://doc.rust-lang.org/book/)，重点理解 ownership、borrowing、enum、trait 和 error handling。
+2. 读 [Cargo Book](https://doc.rust-lang.org/cargo/)，掌握 workspace、feature、test 和发布。
+3. 需要异步时读 [Async Rust Book](https://rust-lang.github.io/async-book/) 和 tokio 文档。
+4. 写一个小工具：扫描目录、生成文件索引、输出 JSON，再由 TypeScript CLI 调用。
+
+## 延伸阅读
+
+- [The Rust Programming Language](https://doc.rust-lang.org/book/)
+- [Cargo Book](https://doc.rust-lang.org/cargo/)
+- [Rust Reference](https://doc.rust-lang.org/reference/)
+- [Async Rust Book](https://rust-lang.github.io/async-book/)
+- [Rust by Example](https://doc.rust-lang.org/rust-by-example/)

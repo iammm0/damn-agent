@@ -5,34 +5,154 @@ description: Python 是智能体工程第二编程语言，重点用于模型实
 
 Python 是本站第二优先级语言。它不是 Agent 产品化唯一选择，但在模型实验、RAG、数据处理、评测、notebook、LangGraph、LlamaIndex、AutoGen、CrewAI 和传统 ML 生态中仍然非常重要。
 
-## 需要掌握的基础
+如果 TypeScript 更像“把 Agent 做成产品”的语言，Python 更像“把模型、数据和评测跑起来”的语言。一个健康的 Agent 项目通常会让 Python 承担研究、检索、评测和批处理，让 TypeScript 承担产品界面、流式交互和用户侧状态。
 
-- 类型和数据结构：dataclass、TypedDict、Pydantic、Protocol、typing。
-- 异步模型：asyncio、task、timeout、cancel、streaming。
-- 包管理：uv、pip、poetry、virtualenv、requirements、pyproject。
-- 数据处理：JSON、CSV、Parquet、PDF、HTML、文本切分。
-- 服务化：FastAPI、HTTP client、background task、worker。
-- 测试：pytest、fixture、mock、golden task、评测脚本。
-- 工程化：ruff、mypy、pre-commit、Docker。
+## 学习目标
+
+| 阶段 | 要能做到什么 |
+| --- | --- |
+| 入门 | 能写函数、模块、包、异常处理、文件读取、JSON/CSV 处理和基础脚本。 |
+| 工程 | 能使用 typing、dataclass、Pydantic、pytest、ruff、mypy 和 pyproject 管理项目。 |
+| Agent | 能搭建 RAG pipeline、评测脚本、文档解析、embedding/rerank 和研究型 Agent。 |
+| 协作 | 能把 Python 服务通过 HTTP、队列、数据库或 artifact 和 TypeScript 产品层连接。 |
+
+## 基础特性
+
+Python 的优势是表达直接、生态成熟、适合快速把数据和模型流程串起来。基础阶段要重点掌握这些内容：
+
+| 特性 | Agent 工程中的用途 |
+| --- | --- |
+| 动态类型 | 快速写原型，但核心数据结构仍建议加类型标注。 |
+| list / dict / tuple / set | 表达文档块、检索结果、评测样本、工具输出。 |
+| 函数 | 封装 loader、chunker、retriever、judge、tool adapter。 |
+| 模块和包 | 把数据处理、模型调用、评测和服务入口拆清楚。 |
+| 异常 | 表达解析失败、模型超时、网络错误和评测失败。 |
+| 上下文管理器 | 管理文件、数据库连接、临时目录和追踪 span。 |
+| 迭代器和生成器 | 处理大文件、分页 API、流式 token 和批量样本。 |
+| `dataclass` | 快速定义轻量数据结构，例如文档块和评测记录。 |
+| `typing` | 给核心协议补类型，降低动态语言的协作成本。 |
+
+一个文档块结构可以先从简单 dataclass 开始：
+
+```python title="document_chunk.py" lineNumbers
+from dataclasses import dataclass
+
+
+@dataclass(frozen=True)
+class DocumentChunk:
+    id: str
+    source: str
+    text: str
+    score: float | None = None
+```
+
+`frozen=True` 表示创建后不应随意修改，适合检索结果、评测样本和可追踪 artifact。
+
+## 类型与数据模型
+
+Python 是动态语言，但 Agent 工程不应该完全放弃类型。越靠近系统边界的数据，越应该清楚写出来。
+
+| 工具 | 适合用途 |
+| --- | --- |
+| `TypedDict` | 描述来自 JSON、API、配置文件的字典结构。 |
+| `Protocol` | 描述“只要实现这些方法就可以使用”的接口。 |
+| `dataclass` | 定义轻量、内部使用的数据对象。 |
+| Pydantic | 做运行时校验、API 入参、工具 schema 和模型输出解析。 |
+| `mypy` | 在提交前检查明显类型错误。 |
+
+例如，评测样本可以写成 `TypedDict`：
+
+```python title="eval_case.py" lineNumbers
+from typing import TypedDict
+
+
+class EvalCase(TypedDict):
+    id: str
+    question: str
+    expected_citation: str
+    rubric: str
+```
+
+Pydantic 更适合处理外部输入，因为它能在运行时验证数据是否符合预期。
+
+## 高级特性
+
+| 特性 | 什么时候需要 |
+| --- | --- |
+| `asyncio` | 同时发起多个模型请求、搜索请求、抓取请求或评测任务。 |
+| timeout / cancel | 控制长任务、避免模型调用或网络请求无限等待。 |
+| 装饰器 | 给工具函数加日志、重试、缓存、追踪或权限检查。 |
+| 依赖隔离 | 不同项目、notebook、服务和 worker 不共享全局依赖。 |
+| `pyproject.toml` | 统一项目元数据、构建系统、工具配置和依赖。 |
+| venv / uv / pip | 管理虚拟环境、依赖安装和锁定。 |
+| pytest | 写单元测试、fixture、golden tasks 和回归评测。 |
+| ruff | 统一 lint 和格式检查。 |
+| mypy | 给核心协议和共享模块做静态检查。 |
+
+`asyncio` 很适合批量评测，但要控制并发，不要把模型、搜索服务或数据库打爆：
+
+```python title="limited_eval.py" lineNumbers
+import asyncio
+
+
+async def judge_case(case_id: str) -> str:
+    await asyncio.sleep(0.1)
+    return f"{case_id}: pass"
+
+
+async def run_eval(case_ids: list[str], concurrency: int = 5) -> list[str]:
+    semaphore = asyncio.Semaphore(concurrency)
+
+    async def run_one(case_id: str) -> str:
+        async with semaphore:
+            return await judge_case(case_id)
+
+    return await asyncio.gather(*(run_one(case_id) for case_id in case_ids))
+```
 
 ## Agent 工程重点
 
-- RAG pipeline：loader、chunk、embedding、rerank、citation。
-- 评测系统：数据集、rubric、LLM-as-Judge、回归脚本。
-- 研究 Agent：搜索、资料读取、引用管理、报告生成。
-- Python 框架：LangGraph、AutoGen、CrewAI、LlamaIndex、Haystack。
-- 与 TypeScript 产品层的边界：API、队列、artifact、数据库。
+| 主题 | Python 要解决的问题 |
+| --- | --- |
+| RAG pipeline | loader、chunk、embedding、rerank、retrieval、citation、answer synthesis。 |
+| 文档解析 | PDF、HTML、Markdown、CSV、Parquet、网页和内部知识库。 |
+| 数据处理 | 清洗、去重、切分、抽样、标注、构造评测集。 |
+| 评测系统 | golden tasks、rubric、LLM-as-Judge、回归脚本、报告生成。 |
+| 研究 Agent | 搜索、资料读取、引用管理、长报告生成。 |
+| 服务边界 | FastAPI、worker、队列、artifact、数据库和 TypeScript 前端协作。 |
 
-## 适合承载的内容
+Python 在 Agent 里最有价值的部分通常不是“写聊天页面”，而是把模型和数据周边工作做扎实：检索是否可复现、评测是否能回归、引用是否可追踪、批处理是否能失败重试。
 
-- RAG 和知识系统。
-- 模型实验和快速原型。
-- 离线评测和数据处理。
-- 研究型 Agent 和分析任务。
+## 与 TypeScript 的边界
 
-## 后续应补内容
+| 工作 | 推荐语言 | 协作方式 |
+| --- | --- | --- |
+| 用户聊天界面、流式输出、工具调用卡片 | TypeScript | React/Next.js 渲染 UI 状态。 |
+| 文档解析、embedding、rerank、评测 | Python | 通过 HTTP API、队列任务或批处理 artifact 输出结果。 |
+| 任务状态、trace、人工确认 | TypeScript | 前端和后端共享 message/state 类型。 |
+| 离线报告、研究型 Agent | Python | 产出 Markdown、JSON、PDF 或数据库记录供产品层展示。 |
 
-- Python RAG pipeline 最小例子。
-- LangGraph 状态图示例。
-- pytest golden tasks 评测模板。
-- Python 服务和 TypeScript 前端的边界示例。
+一个实用边界是：Python 服务不要直接决定产品 UI 如何展示；TypeScript 产品层也不要把复杂文档处理和评测逻辑硬塞进 API route。二者通过清晰的 JSON schema、数据库表、队列消息或 artifact 文件协作。
+
+## 常见错误
+
+- 全部代码写在 notebook 里，没有包结构、测试和可复现入口。
+- 评测脚本只输出一段日志，没有结构化结果和失败样本。
+- RAG pipeline 没有记录 source、chunk id、embedding version 和检索参数。
+- Python 服务直接返回松散 dict，TypeScript 前端只能猜字段。
+- 不锁依赖版本，导致换机器后评测结果或解析行为变化。
+
+## 学习路径
+
+1. 先读官方 [Python Tutorial](https://docs.python.org/3/tutorial/index.html)，掌握函数、模块、异常、类和标准库基础。
+2. 读 [asyncio](https://docs.python.org/3/library/asyncio.html)，理解异步任务、并发、取消和超时。
+3. 读 [Python Packaging User Guide](https://packaging.python.org/en/latest/tutorials/packaging-projects/)，理解 `pyproject.toml`、包结构和依赖管理。
+4. 用一个小 RAG 项目练习 loader、chunk、embedding、retrieval、citation 和 eval。
+
+## 延伸阅读
+
+- [Python Tutorial](https://docs.python.org/3/tutorial/index.html)
+- [asyncio](https://docs.python.org/3/library/asyncio.html)
+- [typing](https://docs.python.org/3/library/typing.html)
+- [Python Packaging User Guide](https://packaging.python.org/en/latest/tutorials/packaging-projects/)
+- [pytest](https://docs.pytest.org/)
