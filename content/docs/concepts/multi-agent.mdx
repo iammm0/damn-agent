@@ -3,19 +3,1825 @@ title: 多 Agent 协作
 description: 多 Agent 系统中的角色划分、通信、编排、冲突处理和适用边界。
 ---
 
-这个页面用于承载多 Agent 协作的基础模型。多 Agent 不是简单多开几个角色，而是要处理分工、通信、共享状态、并发和最终一致性。
+多 Agent 协作解决的核心问题是：当单个 Agent 的上下文、工具集或专业能力不足以应对复杂任务时，如何让多个专精 Agent 分工协作、可靠交付。
 
-## 建设边界
+> "多 Agent 的价值在于专业化、并行和上下文隔离。"——《智能体设计模式》，pp. 75-85
 
-- 常见模式：manager-worker、handoff、debate、specialist team、blackboard。
-- 角色设计：研究、规划、执行、评审、测试、总结。
-- 通信机制：消息、共享状态、事件流、任务图、上下文转交。
-- 并发控制：任务分片、结果合并、锁、取消、超时。
-- 协作风险：重复劳动、角色漂移、信息丢失、循环争论。
-- 适用边界：什么时候单 Agent 更简单，什么时候多 Agent 才值得。
+## 定义与边界
 
-## 后续应补内容
+### 什么是多 Agent 系统
 
-- manager-worker 与 handoff 的对比图。
-- 多 Agent 任务状态设计示例。
-- 多 Agent 协作风险检查清单。
+多 Agent 系统（Multi-Agent System, MAS）是由多个各自拥有 LLM 驱动的 Agent 协同工作来解决复杂问题的架构。每个 Agent 专注于特定子任务，通过通信和协调完成单个 Agent 难以胜任的工作。
+
+真正的多 Agent 系统需要满足三个条件：
+
+1. **角色分化**：每个 Agent 有明确的职责边界和专用工具集，而非共享全部能力。
+2. **自主决策**：Agent 能基于其他 Agent 的输出自主调整行为，而非仅按固定顺序调用。
+3. **状态隔离**：每个 Agent 维护自己的上下文窗口，而非把所有信息塞进同一个 prompt。
+
+两个 LLM 调用不一定是多 Agent——如果只是顺序链式调用且中间无自主决策，那仍然是单 Agent 的多步执行。
+
+### 多 Agent 不是越多越好
+
+Anthropic 在《Building Effective Agents》中明确建议：从最简单的方案开始，只在需要时才增加复杂度。Agentic systems 往往用延迟和成本换取更好的任务表现，需要判断这个权衡是否合理。来源：Anthropic, "Building Effective Agents", 2024.12, https://www.anthropic.com/engineering/building-effective-agents。
+
+《Claude Code Harness Engineering》也指出，从有状态单 Agent 走向多 Agent 是复杂度质变，需要新的错误隔离和恢复机制。来源：《Claude Code Harness Engineering：从入门到实战》，pp. 151-152。
+
+### 适用边界
+
+| 场景 | 是否适合多 Agent | 说明 |
+| --- | --- | --- |
+| 任务可分解为独立子任务 | 适合 | 拆分后各 Agent 可独立完成 |
+| 需要不同专业视角 | 适合 | 如编码 + 安全审查、研究 + 写作 |
+| 子任务可以并行执行 | 适合 | 并行缩短墙钟时间 |
+| 工具数量过多，单 Agent 选择困难 | 适合 | 拆分工具集，降低选择错误率 |
+| 需要权限隔离（读写分离、审批分离） | 适合 | 不同 Agent 持不同权限 |
+| 需要 Checker / Reviewer 验证质量 | 适合 | 生成与审查由不同 Agent 承担 |
+| 任务简单、线性、工具少于 10 个 | 不适合 | 多 Agent 的通信开销超过收益 |
+| 强实时、成本极度敏感 | 不适合 | 多轮 Agent 通信增加延迟和 token |
+| 快速原型验证 | 不适合 | 先用单 Agent 验证可行性 |
+
+判断原则：**从单 Agent 开始，当遇到明确的瓶颈时再拆分**。瓶颈通常表现为：上下文过载、工具选择错误率上升、角色冲突（同时要求严谨分析和创意写作）。
+
+## 角色划分
+
+### 角色设计原则
+
+角色划分的目标是让每个 Agent 的职责窄而深，而非宽而浅。《智能体设计模式》将多 Agent 视为由多个独立或半独立 Agent 协同完成共同目标的模式，常见形态包括顺序交接、并行处理、辩论共识和协调者架构。来源：《智能体设计模式》，pp. 75-85。
+
+好的角色设计应该回答四个问题：
+
+1. 这个 Agent 负责什么（职责边界）。
+2. 这个 Agent 不负责什么（排除边界）。
+3. 这个 Agent 需要哪些工具（最小权限）。
+4. 这个 Agent 的产出物是什么（契约定义）。
+
+### 角色划分的典型模式
+
+```mermaid
+flowchart TD
+  subgraph 按专业分工
+    R1[研究 Agent] --> R2[分析 Agent]
+    R2 --> R3[写作 Agent]
+  end
+
+  subgraph 按流程阶段
+    P1[规划 Agent] --> P2[执行 Agent]
+    P2 --> P3[审查 Agent]
+  end
+
+  subgraph 按权限隔离
+    S1[只读 Agent] --> S2[写入 Agent]
+    S2 --> S3[审批 Agent]
+  end
+```
+
+| 划分方式 | 核心思想 | 典型场景 | 代表项目 |
+| --- | --- | --- | --- |
+| 按专业分工 | 每个 Agent 专精一个领域 | 研究报告、多领域分析 | CrewAI（Agent + Task + Crew） |
+| 按流程阶段 | 模拟 SOP 的阶段分工 | 软件开发、文档审核 | MetaGPT（PM/架构/工程师/QA） |
+| 按权限隔离 | 读写分离、审批分离 | 生产部署、金融操作 | Claude Code（Coordinator + Worker） |
+
+### MetaGPT 的 SOP 模式
+
+MetaGPT 是 SOP 模式的代表。它把软件开发流程建模为标准操作流程（SOP），每个角色有明确的输入契约和输出契约：ProductManager 输出 PRD，Architect 输出系统设计，Engineer 输出代码，QAEngineer 输出测试用例。来源：Hong et al., "MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework", arXiv:2308.00352, 2023。
+
+SOP 的关键约束是：上游角色的输出必须满足下游角色的输入格式。这种结构化通信比自由对话更可靠，但也更僵化——适合流程稳定的场景，不适合探索性任务。
+
+### Claude Code 的 Coordinator-Worker 模式
+
+《Claude Code Harness Engineering》描述了 Coordinator-Worker 模式：Coordinator 做计划、分配、综合，Worker 执行具体任务并汇报。写入型任务要通过 worktree、文件锁或串行调度避免冲突；只读任务才适合并行。给 Worker 的 prompt 必须自包含：背景、目标、文件路径、禁止事项、输出格式都要写清楚。子 Agent 不知道主对话历史，也不知道其他 Agent 正在做什么。来源：《Claude Code Harness Engineering：从入门到实战》，pp. 107-116。
+
+## 任务分配策略
+
+任务分配决定"这个子任务交给谁"。角色划分解决了"谁负责什么"，任务分配策略解决"如何动态地把工作分给合适的 Agent"。
+
+### 任务分配的基本流程
+
+```text title="task-allocation-flow.txt"
+复杂任务
+    ↓
+┌──────────────┐
+│  任务分解     │ → 将大任务拆成子任务
+│ (Decompose)  │
+└──────┬───────┘
+       ↓
+┌──────────────┐
+│  任务分配     │ → 将子任务匹配给合适的 Agent
+│ (Allocate)   │
+└──────┬───────┘
+       ↓
+┌──────────────┐
+│  协调执行     │ → 管理依赖、同步、冲突
+│ (Coordinate) │
+└──────┬───────┘
+       ↓
+┌──────────────┐
+│  结果聚合     │ → 合并各 Agent 的输出
+│ (Aggregate)  │
+└──────────────┘
+```
+
+### 集中式规划-分散执行
+
+中央规划器负责全局任务分解和分配，Agent 独立执行：
+
+```python title="central-planner.py" lineNumbers
+import asyncio
+
+class CentralPlanner:
+    """中央规划器：分解任务 + 按能力分配 + 按依赖编排"""
+
+    def __init__(self, agents: dict):
+        self.agents = agents
+
+    async def plan_and_execute(self, task: str):
+        # Step 1: LLM 分解任务为子任务
+        subtasks = await self.decompose(task)
+
+        # Step 2: 根据 Agent 能力分配子任务
+        assignments = self.assign(subtasks)
+
+        # Step 3: 按依赖关系编排执行
+        results = {}
+        for batch in self.topological_sort(assignments):
+            # 同一批次的任务无依赖，可并行
+            batch_results = await asyncio.gather(
+                *[self.agents[a.agent_id].execute(a.subtask, results)
+                  for a in batch]
+            )
+            results.update(zip([a.subtask.id for a in batch], batch_results))
+
+        return results
+
+    def assign(self, subtasks):
+        """基于 Agent 能力描述的自动匹配"""
+        assignments = []
+        for subtask in subtasks:
+            best_agent = max(
+                self.agents.values(),
+                key=lambda a: self.capability_match(a, subtask)
+            )
+            assignments.append(Assignment(subtask, best_agent.id))
+        return assignments
+```
+
+### LLM 作为协调器
+
+利用 LLM 的推理能力做动态任务分配——给 LLM 提供所有 Agent 的能力描述，让 LLM 决定如何分解和分配：
+
+```python title="llm-coordinator.py" lineNumbers
+class LLMCoordinator:
+    async def coordinate(self, task, agents):
+        agent_descriptions = "\n".join([
+            f"- {a.name}: {a.description}, 擅长: {a.capabilities}"
+            for a in agents
+        ])
+
+        plan = await self.llm.generate(f"""
+        任务: {task}
+
+        可用 Agent:
+        {agent_descriptions}
+
+        请分解任务并分配给合适的 Agent。
+        输出格式:
+        1. [Agent名] → 子任务描述 (依赖: 无/步骤N)
+        2. ...
+        """)
+
+        return self.parse_and_execute(plan)
+```
+
+### 动态分配
+
+静态分配的局限在于 Agent 能力固定、任务分配策略不适应环境变化。基于亲和度的事件驱动动态分配可以根据历史表现和当前负载动态调整：
+
+```python title="dynamic-allocation.py" lineNumbers
+class DynamicAllocator:
+    """基于亲和度的事件驱动动态分配"""
+
+    def __init__(self, agents):
+        self.agents = agents
+        self.affinity_scores = {}  # (agent, task_type) → 历史成功率
+
+    async def allocate(self, subtask):
+        candidates = []
+        for agent in self.agents:
+            score = self.compute_score(agent, subtask)
+            candidates.append((agent, score))
+
+        best = max(candidates, key=lambda x: x[1])
+        return best[0]
+
+    def compute_score(self, agent, subtask):
+        return (
+            0.4 * self.capability_match(agent, subtask) +   # 能力匹配
+            0.3 * self.affinity_scores.get((agent.id, subtask.type), 0.5) +  # 历史表现
+            0.2 * (1 - agent.current_load / agent.max_load) +  # 当前负载
+            0.1 * self.recency_bonus(agent)  # 最近是否空闲
+        )
+
+    def update_affinity(self, agent_id, task_type, success: bool):
+        """根据执行结果更新亲和度"""
+        key = (agent_id, task_type)
+        old = self.affinity_scores.get(key, 0.5)
+        self.affinity_scores[key] = old * 0.8 + (1.0 if success else 0.0) * 0.2
+```
+
+来源：DRAMA: Next-Gen Dynamic Orchestration for Resilient Multi-Agent Ecosystems in Flux, arXiv:2508.04332, 2025。
+
+### 依赖管理
+
+用 DAG（有向无环图）表示任务依赖，拓扑排序确定执行顺序：
+
+```python title="dag-dependencies.py" lineNumbers
+# 用 DAG 表示任务依赖
+task_graph = {
+    "search":    {"depends_on": []},
+    "analyze":   {"depends_on": ["search"]},
+    "visualize": {"depends_on": ["search"]},      # 和 analyze 并行
+    "report":    {"depends_on": ["analyze", "visualize"]},  # 等两者完成
+}
+
+# 拓扑排序确定执行顺序
+# Batch 1: search（无依赖）
+# Batch 2: analyze, visualize（并行）
+# Batch 3: report（等待前两个）
+```
+
+### Token 冗余控制
+
+研究显示多 Agent 框架中 Agent 间通信存在显著的 token 冗余问题。来源：Guo et al., "Large Language Model based Multi-Agents: A Survey of Progress and Challenges", arXiv:2402.01680, 2024。
+
+解决方案：
+
+```python title="token-compression.py" lineNumbers
+def compress_for_handoff(agent_output: str, max_tokens: int = 500):
+    """传递摘要而非完整输出，减少 token 冗余"""
+    if count_tokens(agent_output) > max_tokens:
+        return summarize(agent_output, max_tokens=max_tokens)
+    return agent_output
+```
+
+其他方案包括：共享记忆池（黑板模式）、Instruction-Tool Retrieval（每步只加载必要信息）。
+
+## 通信机制
+
+### 四种通信模式
+
+通信机制决定 Agent 之间如何交换信息与引用共享事实。
+
+| 机制 | 核心思想 | 优点 | 缺点 |
+| --- | --- | --- | --- |
+| 直接消息 | A 显式发给 B（点对点） | 简单、易追踪 | N² 连接复杂；需知道对端 |
+| 共享黑板 | 公共读写区，各 Agent 读全局、写局部 | 解耦"谁知道谁" | 并发写需锁/版本；易成垃圾堆 |
+| 发布-订阅 | 主题广播，订阅者自选感兴趣事件 | 扩展性好 | 主题设计不好会混乱 |
+| 消息队列 | 先入先出，异步解耦 | 削峰、重试、持久化 | 延迟增加；需死信与幂等设计 |
+
+选型提示：强审计、强顺序、高吞吐选队列；探索式协作、快速原型选黑板；简单多角色选直接消息。
+
+### 通信模式实现
+
+#### 消息传递（Message Passing）
+
+```python title="message-bus.py" lineNumbers
+from datetime import datetime
+from collections import defaultdict
+
+class MessageBus:
+    """点对点 + 广播消息传递"""
+
+    def __init__(self):
+        self.queues = defaultdict(list)  # agent_id → message_queue
+
+    async def send(self, from_agent: str, to_agent: str, message: dict):
+        """发送消息给特定 Agent"""
+        msg = {
+            "from": from_agent,
+            "to": to_agent,
+            "content": message,
+            "timestamp": datetime.now()
+        }
+        self.queues[to_agent].append(msg)
+
+    async def broadcast(self, from_agent: str, message: dict):
+        """广播消息给所有 Agent"""
+        for agent_id in self.queues:
+            if agent_id != from_agent:
+                self.queues[agent_id].append({
+                    "from": from_agent,
+                    "content": message
+                })
+```
+
+生产实现通常使用消息队列（RabbitMQ、Redis Streams）实现可靠的异步消息传递。
+
+#### 共享状态（Shared State）
+
+```python title="shared-state.py" lineNumbers
+import asyncio
+from typing import TypedDict
+
+
+class SharedState(TypedDict):
+    """共享状态的结构定义"""
+    messages: list[str]
+    research_data: dict
+    draft: str
+    review_comments: list[str]
+    status: str
+
+
+class SafeSharedState:
+    """带并发控制的共享状态"""
+
+    def __init__(self):
+        self.state: SharedState = {
+            "messages": [], "research_data": {},
+            "draft": "", "review_comments": [], "status": "init",
+        }
+        self.lock = asyncio.Lock()
+
+    async def update(self, agent_id: str, updates: dict):
+        async with self.lock:  # 确保原子更新
+            self.state.update(updates)
+            self.state["last_updated_by"] = agent_id
+```
+
+LangGraph 的共享状态图是共享状态模式的生产级实现——全局状态流经每个节点，Reducer 函数合并并发更新。
+
+#### 黑板模式（Blackboard）
+
+经典 AI 架构模式，Agent 围绕共享"黑板"自主协作：
+
+```python title="blackboard.py" lineNumbers
+from datetime import datetime
+
+class Blackboard:
+    def __init__(self):
+        self.public_space = []   # 公共区域：所有 Agent 可见
+        self.private_spaces = {} # 私有区域：各 Agent 独立空间
+
+    def post(self, agent_id: str, content: dict, visibility="public"):
+        entry = {
+            "author": agent_id,
+            "content": content,
+            "timestamp": datetime.now()
+        }
+        if visibility == "public":
+            self.public_space.append(entry)
+        else:
+            self.private_spaces.setdefault(agent_id, []).append(entry)
+
+    def read(self, agent_id: str) -> list:
+        """Agent 读取黑板上与自己相关的内容"""
+        return self.public_space + self.private_spaces.get(agent_id, [])
+
+class BlackboardSystem:
+    def __init__(self, blackboard, agents, controller):
+        self.blackboard = blackboard
+        self.agents = agents
+        self.controller = controller  # 控制器（决定谁行动）
+
+    async def run(self, task):
+        self.blackboard.post("system", {"task": task})
+
+        while not self.is_solved():
+            # 控制器选择下一个行动的 Agent
+            active_agent = self.controller.select(
+                self.blackboard, self.agents
+            )
+            # Agent 读取黑板、处理、写回结果
+            result = await active_agent.process(
+                self.blackboard.read(active_agent.id)
+            )
+            self.blackboard.post(active_agent.id, result)
+```
+
+黑板模式的关键特性：
+
+- **自愿参与**：Agent 基于自身专长决定是否响应黑板上的请求。
+- **迭代精化**：多轮读取-处理-写回，逐步完善解决方案。
+- **去中心化**：不需要协调器预先知道所有 Agent 的能力。
+- **Token 高效**：共享公共记忆替代个体记忆，减少重复。
+
+研究表明，黑板架构在端到端任务成功率上比 RAG 和 Master-Slave 模式提升 13%-57%。来源：LLM-based Multi-Agent Blackboard System, arXiv:2510.01285, 2025。
+
+#### 黑板模式 vs 共享状态
+
+共享状态是被动的数据存储，Agent 按预定流程读写；黑板模式是主动的协作平台，Agent 自主观察黑板内容并决定是否参与。黑板有控制器决定执行顺序，Agent 有自愿参与的机制。
+
+### 三种通信模式对比
+
+| 维度 | 消息传递 | 共享状态 | 黑板模式 |
+| --- | --- | --- | --- |
+| 通信方式 | 点对点/广播 | 读写全局存储 | 读写共享空间 |
+| 耦合度 | 低 | 中 | 低 |
+| 扩展性 | 高 | 中（可能瓶颈） | 高 |
+| 一致性 | 最终一致 | 强一致 | 最终一致 |
+| Token 效率 | 低（重复传递） | 中 | 高（共享上下文） |
+| 调试难度 | 高（追踪消息流） | 低（检查状态） | 中 |
+| 通信落地示例 | AutoGen GroupChat、消息队列 | LangGraph State | LbMAS、Terrarium |
+
+### Handoff：Agent 间的任务交接
+
+Handoff 是多 Agent 系统中一个 Agent 将控制权、任务和对话上下文转交给另一个 Agent 的过程。LangGraph 官方文档将 Handoff 定义为多 Agent 交互的核心模式，包含两个要素：目标 Agent（destination）和传递数据（payload）。来源：LangGraph Multi-agent Concepts, https://langchain-ai.github.io/langgraph/concepts/multi_agent/。
+
+Handoff 和工具调用的关键区别：工具调用后控制权回到原 Agent；Handoff 后控制权完全转移到新 Agent。工具是"用完即还"，Handoff 是"交接班"。
+
+#### Supervisor（Manager-Worker）vs Handoff 对比
+
+两种模式的核心区别在于**控制权的归属**：Supervisor 模式中控制权始终在 Supervisor，Worker 完成后必须回到 Supervisor；Handoff 模式中控制权完全转移给目标 Agent，原 Agent 不再参与。
+
+```mermaid
+flowchart TB
+  subgraph Supervisor-Manager-Worker
+    direction TB
+    SM[Supervisor] -->|分配任务| SW1[Worker 1]
+    SM -->|分配任务| SW2[Worker 2]
+    SW1 -->|返回结果| SM
+    SW2 -->|返回结果| SM
+    SM -->|综合输出| OUT1[最终结果]
+  end
+
+  subgraph Handoff
+    direction TB
+    HA[Agent A] -->|移交控制权| HB[Agent B]
+    HB -->|移交控制权| HC[Agent C]
+    HC -->|最终输出| OUT2[最终结果]
+  end
+```
+
+| 维度 | Supervisor（Manager-Worker） | Handoff |
+| --- | --- | --- |
+| 控制权 | Supervisor 始终持有 | 逐级转移，原 Agent 退出 |
+| 上下文 | Supervisor 维护全局上下文 | 每次交接需显式传递 |
+| 并行能力 | 可并行派发多个 Worker | 本质是串行接力 |
+| 调试难度 | 集中在 Supervisor，相对可控 | 需追踪整条交接链 |
+| 适用场景 | 多子任务并行、需要全局协调 | 专家转诊、流程阶段交接 |
+| 代表框架 | LangGraph Supervisor、CrewAI Hierarchical | OpenAI Agents SDK、OpenAI Swarm |
+
+来源：LangGraph Multi-agent Concepts, https://langchain-ai.github.io/langgraph/concepts/multi_agent/；OpenAI Agents SDK Documentation, https://openai.github.io/openai-agents-python/handoffs/。
+
+OpenAI Agents SDK 将 Handoff 包装为工具调用——当 Agent 判断任务超出自身能力时，调用 `transfer_to_XXX` 函数触发交接。核心 API 参数包括：`tool_name_override`（自定义工具名）、`on_handoff`（交接回调）、`input_filter`（过滤传给目标 Agent 的对话历史）、`input_type`（用 Pydantic 模型约束交接入参）。来源：OpenAI Agents SDK Documentation, https://openai.github.io/openai-agents-python/handoffs/。
+
+### 上下文传递策略
+
+Handoff 最大的挑战不是触发，而是上下文传递的可靠性。三种策略：
+
+| 策略 | 做法 | 优点 | 缺点 |
+| --- | --- | --- | --- |
+| 完整历史传递 | 把所有对话历史复制给目标 Agent | 简单 | 可能超出上下文窗口 |
+| 摘要传递 | 只传摘要 + 最新消息 | 节省 token | 可能丢失细节 |
+| 结构化上下文 | 用 JSON Schema 传递结构化数据 | 可靠、可校验 | 需要设计契约 |
+
+最佳实践是**结构化上下文传递**——像对待公开 API 一样对待 Agent 间接口。自由文本 Handoff 是上下文丢失的主要原因。
+
+### Handoff 实现方式
+
+#### Tool-Based Handoff（OpenAI Agents SDK）
+
+将 Handoff 作为工具暴露给 LLM，当 Agent 判断任务超出自身能力时，调用 `transfer_to_XXX` 函数触发交接：
+
+```python title="tool-based-handoff.py" lineNumbers
+from agents import Agent, handoff
+
+# 定义专家 Agent
+refund_agent = Agent(
+    name="Refund Agent",
+    instructions="你负责处理退款请求...",
+    tools=[execute_refund, check_refund_status],
+)
+
+shipping_agent = Agent(
+    name="Shipping Agent",
+    instructions="你负责处理物流问题...",
+    tools=[track_package, update_address],
+)
+
+# 路由 Agent 有 Handoff 能力
+triage_agent = Agent(
+    name="Triage Agent",
+    instructions="根据用户需求将请求路由给合适的专家",
+    handoffs=[
+        # 简单写法：直接传 Agent
+        refund_agent,
+        # 完整写法：通过 handoff(...) 自定义工具名 / 回调 / 输入过滤
+        handoff(
+            agent=shipping_agent,
+            tool_name_override="route_to_shipping",
+            tool_description_override="将对话交给物流专家处理快递相关问题",
+            on_handoff=lambda ctx: log_handoff(ctx),
+            input_filter=keep_last_n_messages(5),
+            input_type=ShippingHandoffInput,  # Pydantic 模型校验 Handoff 入参
+        ),
+    ],
+    # 内部自动生成工具：transfer_to_refund_agent, route_to_shipping
+)
+```
+
+核心 API 参数：
+
+| 参数 | 作用 |
+| --- | --- |
+| `tool_name_override` | 自定义生成的工具名（默认 `transfer_to_代理名称`） |
+| `tool_description_override` | 自定义工具描述 |
+| `on_handoff` | Handoff 发生时的回调（用于日志、审计、状态注入） |
+| `input_filter` | 过滤传给目标 Agent 的对话历史 |
+| `input_type` | 用 Pydantic 模型约束 Handoff 的入参，强制结构化 |
+
+来源：OpenAI Agents SDK Documentation, https://openai.github.io/openai-agents-python/handoffs/。
+
+#### Supervisor 模式（LangGraph）
+
+```python title="supervisor-handoff-langgraph.py" lineNumbers
+from typing import TypedDict
+from langgraph.graph import StateGraph, END
+
+class SupervisorState(TypedDict):
+    messages: list
+    current_agent: str
+
+def supervisor_node(state):
+    """Supervisor 决定下一个处理的 Agent"""
+    response = supervisor_llm.invoke(
+        f"当前对话：{state['messages']}\n"
+        f"可用专家：researcher, coder, writer\n"
+        f"谁应该处理下一步？回复 agent 名称或 'FINISH'"
+    )
+    return {"current_agent": response.agent_name}
+
+def route(state):
+    if state["current_agent"] == "FINISH":
+        return END
+    return state["current_agent"]
+
+graph = StateGraph(SupervisorState)
+graph.add_node("supervisor", supervisor_node)
+graph.add_node("researcher", researcher_node)
+graph.add_node("coder", coder_node)
+graph.add_conditional_edges("supervisor", route)
+# 每个 worker 完成后回到 supervisor
+graph.add_edge("researcher", "supervisor")
+graph.add_edge("coder", "supervisor")
+```
+
+#### Swarm 风格：函数返回 Agent 对象
+
+```python title="swarm-handoff.py" lineNumbers
+# 工具函数返回 Agent 对象触发 Handoff
+def handle_refund(order_id: str):
+    """处理退款请求"""
+    status = check_order(order_id)
+    if status == "delivered":
+        return refund_agent  # 返回 Agent 对象 = 触发 Handoff
+    else:
+        return f"订单 {order_id} 尚未送达，无法退款"
+
+triage_agent = Agent(
+    name="Triage",
+    tools=[handle_refund],  # 函数可能返回 Agent
+)
+```
+
+#### Input Filter
+
+控制传给目标 Agent 的上下文，避免传递无关信息：
+
+```python title="input-filter.py" lineNumbers
+from agents import handoff
+
+def filter_for_billing(handoff_input):
+    """只传递与计费相关的上下文给 Billing Agent"""
+    filtered = []
+    for msg in handoff_input.messages:
+        if is_billing_related(msg) or msg == handoff_input.messages[-1]:
+            filtered.append(msg)
+    handoff_input.messages = filtered
+    return handoff_input
+
+billing_handoff = handoff(
+    agent=billing_agent,
+    input_filter=filter_for_billing,
+)
+```
+
+#### Handoff 可靠性设计
+
+```python title="reliable-handoff.py" lineNumbers
+class ReliableHandoff:
+    async def execute(self, from_agent, to_agent, context):
+        # 1. 验证目标 Agent 可用
+        if not to_agent.is_healthy():
+            return await self.fallback(from_agent, context)
+
+        # 2. 结构化上下文打包
+        payload = self.pack_context(context)
+
+        # 3. 执行 Handoff
+        try:
+            result = await to_agent.invoke(payload)
+        except Exception as e:
+            # 4. 失败回退
+            return await from_agent.handle_handoff_failure(e, context)
+
+        # 5. 记录 Handoff 日志
+        self.log_handoff(from_agent.id, to_agent.id, payload, result)
+        return result
+```
+
+### A2A 协议：Agent 间通信的标准化
+
+A2A（Agent-to-Agent）是 Google 于 2025 年 4 月发布的开放协议，旨在让不同厂商、不同框架构建的 AI Agent 之间实现标准化通信与协作。2025 年 6 月由 Google 捐赠给 Linux Foundation 托管，AWS、Cisco、Microsoft、Salesforce、SAP 等作为创始成员参与。协议基于 HTTP + JSON-RPC 2.0 + SSE 构建，核心概念包括 Agent Card（服务发现）、Task（任务生命周期管理）、Message 和 Artifact（交互载体）。来源：Google A2A Protocol, https://google.github.io/A2A/。
+
+A2A 与 MCP 的定位差异：MCP 解决的是 Agent 与 Tool 之间的纵向能力扩展（"Agent 如何调用工具"），A2A 解决的是 Agent 与 Agent 之间的横向协作（"Agent 如何委托另一个 Agent"）。两者定位互补——一个 Agent 可以同时用 MCP 连接工具、用 A2A 与其他 Agent 协作。来源：《智能体设计模式》，pp. 109-111。
+
+### A2A 协议版本变更
+
+A2A 协议仍在快速迭代，需注意版本差异：
+
+| 版本 | 变更 | 影响 |
+| --- | --- | --- |
+| v0.2.0 | 核心方法名从 `tasks/send` / `tasks/sendSubscribe` 重命名为 `message/send` / `message/stream` | API 调用需更新 |
+| v0.3.0 | 新增 gRPC binding 与 Agent Card signing 支持 | 性能和安全性提升 |
+
+来源：Google A2A Protocol, https://google.github.io/A2A/。
+
+### A2A 交互代码示例
+
+```python title="a2a-interaction.py" lineNumbers
+import json
+import uuid
+from dataclasses import dataclass, field
+from enum import Enum
+
+
+class TaskState(Enum):
+    """A2A Task 状态枚举"""
+    SUBMITTED = "submitted"
+    WORKING = "working"
+    INPUT_REQUIRED = "input-required"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+@dataclass
+class AgentCard:
+    """Agent Card — 声明 Agent 的能力，发布于 /.well-known/agent.json"""
+    name: str
+    description: str
+    url: str
+    skills: list[dict] = field(default_factory=list)
+    capabilities: dict = field(default_factory=lambda: {
+        "streaming": True, "pushNotifications": False,
+    })
+
+    def to_json(self) -> str:
+        return json.dumps(vars(self), ensure_ascii=False, indent=2)
+
+
+@dataclass
+class Task:
+    """A2A Task — 协议核心工作单元，带状态机校验"""
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    state: TaskState = TaskState.SUBMITTED
+    messages: list[dict] = field(default_factory=list)
+    artifacts: list[dict] = field(default_factory=list)
+
+    # 合法状态转换表
+    _transitions = {
+        TaskState.SUBMITTED: {TaskState.WORKING, TaskState.FAILED},
+        TaskState.WORKING: {TaskState.COMPLETED, TaskState.FAILED, TaskState.INPUT_REQUIRED},
+        TaskState.INPUT_REQUIRED: {TaskState.WORKING, TaskState.FAILED},
+    }
+
+    def transition(self, new_state: TaskState):
+        allowed = self._transitions.get(self.state, set())
+        if new_state not in allowed:
+            raise ValueError(f"非法状态转换: {self.state.value} → {new_state.value}")
+        self.state = new_state
+
+
+class A2AServer:
+    """模拟 A2A 服务端——接收 JSON-RPC 请求、管理 Task 生命周期"""
+
+    def __init__(self, card: AgentCard):
+        self.card = card
+        self.tasks: dict[str, Task] = {}
+
+    def handle_request(self, request: dict) -> dict:
+        """路由 JSON-RPC 2.0 请求"""
+        method = request["method"]
+        params = request.get("params", {})
+        req_id = request["id"]
+
+        if method == "message/send":
+            result = self._send(params)
+        elif method == "tasks/get":
+            task = self.tasks[params["id"]]
+            result = {"id": task.id, "state": task.state.value}
+        else:
+            return {"jsonrpc": "2.0", "id": req_id,
+                    "error": {"code": -32601, "message": "方法不存在"}}
+
+        return {"jsonrpc": "2.0", "id": req_id, "result": result}
+
+    def _send(self, params: dict) -> dict:
+        task_id = params.get("id", str(uuid.uuid4()))
+        if task_id in self.tasks:
+            task = self.tasks[task_id]
+            task.messages.append(params["message"])
+            task.transition(TaskState.WORKING)
+        else:
+            task = Task(id=task_id, messages=[params["message"]])
+            self.tasks[task_id] = task
+            task.transition(TaskState.WORKING)
+
+        # 模拟业务逻辑
+        text = task.messages[-1]["parts"][0]["text"]
+        if "分析" in text and "时间" not in text:
+            task.transition(TaskState.INPUT_REQUIRED)
+            return {"id": task.id, "state": task.state.value,
+                    "messages": [{"role": "agent",
+                                  "parts": [{"type": "text", "text": "请指定分析时间范围"}]}]}
+
+        task.transition(TaskState.COMPLETED)
+        task.artifacts.append({
+            "name": "report",
+            "parts": [{"type": "text", "text": f"基于 [{text}] 的分析报告..."}]
+        })
+        return {"id": task.id, "state": task.state.value, "artifacts": task.artifacts}
+```
+
+### A2A 安全层
+
+A2A 复用成熟的 Web 安全标准：
+
+| 认证方式 | 适用场景 |
+| --- | --- |
+| OAuth 2.0 | 企业间协作首选 |
+| API Key | 内部系统 |
+| JWT Bearer Token | 无状态场景 |
+| mTLS | 高安全要求 |
+
+Agent Card 的 `authentication` 字段声明支持的认证方案，`skills` 可设置权限级别实现细粒度能力授权。
+
+### A2A 长时间任务处理
+
+A2A 提供三种机制覆盖秒级到天级的任务时长：
+
+| 机制 | 做法 | 适用时长 |
+| --- | --- | --- |
+| SSE 流式推送 | 通过 `message/stream` 实时推送中间状态和增量结果 | 秒级到分钟级 |
+| Push Notification | 客户端注册 webhook 回调，服务端在状态变更时主动通知 | 分钟级到小时级 |
+| Task 状态轮询 | 通过 `tasks/get` 随时查询进度 | 任意时长 |
+
+## 编排模式
+
+### 五种编排架构
+
+LangGraph 官方文档定义了五种多 Agent 架构：Network、Supervisor、Supervisor (tool-calling)、Hierarchical 和 Custom multi-agent workflow。来源：LangGraph Multi-agent Concepts, https://langchain-ai.github.io/langgraph/concepts/multi_agent/。
+
+```mermaid
+flowchart TB
+  subgraph Network
+    N1[Agent A] <--> N2[Agent B]
+    N2 <--> N3[Agent C]
+    N1 <--> N3
+  end
+
+  subgraph Supervisor
+    S0[Supervisor] --> S1[Agent 1]
+    S0 --> S2[Agent 2]
+    S1 --> S0
+    S2 --> S0
+  end
+
+  subgraph Hierarchical
+    H0[Top Supervisor] --> H1[Team 1 Supervisor]
+    H0 --> H2[Team 2 Supervisor]
+    H1 --> H1A[Agent 1A]
+    H1 --> H1B[Agent 1B]
+    H2 --> H2A[Agent 2A]
+  end
+```
+
+### Network（对等网络）
+
+每个 Agent 可以与其他任何 Agent 通信，任何 Agent 都可以决定下一步调用谁。适合没有明确层级或固定顺序的问题。
+
+优点：灵活、去中心化。缺点：难以追踪和调试，容易产生循环调用。
+
+### Supervisor（监督者）
+
+一个中心 Supervisor Agent 决定下一步调用哪个 Worker Agent。Worker 完成后回到 Supervisor。这是目前生产环境最常用的模式。
+
+Supervisor 的核心不是复杂的 prompt，而是基于状态机的路由函数。Supervisor 读取当前状态，决定下一步调用哪个 Agent，然后 Agent 执行后回到 Supervisor。来源：LangGraph Multi-agent Supervisor Tutorial, https://langchain-ai.github.io/langgraph/tutorials/multi_agent/agent_supervisor/。
+
+### Supervisor (tool-calling)
+
+Supervisor 的变体：把每个 Worker Agent 包装为工具，Supervisor 用 tool-calling LLM 决定调用哪个 Agent 工具。这是 OpenAI Agents SDK 的核心模式。
+
+```ts title="supervisor-tool-calling.ts" lineNumbers
+// Supervisor 把 Agent 当作工具调用
+const tools = [researchAgent, codeAgent, reviewAgent];
+const supervisor = createReActAgent(model, tools);
+```
+
+### Hierarchical（层级式）
+
+当 Agent 数量增多，单个 Supervisor 管不过来时，可以设计层级结构：顶层 Supervisor 管理团队 Supervisor，团队 Supervisor 管理各自的 Worker。这是 Supervisor 架构的泛化。
+
+LangGraph 官方指出：随着 Agent 数量增加，Supervisor 可能开始做出糟糕的路由决策，或上下文变得过于复杂——这正是最初引入多 Agent 架构要解决的问题。层级式架构通过分层管理来应对这个矛盾。来源：LangGraph Multi-agent Hierarchical Tutorial, https://langchain-ai.github.io/langgraph/tutorials/multi_agent/hierarchical_agent_teams/。
+
+### Custom Workflow（自定义工作流）
+
+部分流程是确定性的（固定边），部分流程是动态的（Agent 自主决策）。这是最灵活但也最复杂的模式。
+
+### 编排模式选型
+
+| 模式 | 控制度 | 灵活度 | 复杂度 | 适合场景 |
+| --- | --- | --- | --- | --- |
+| Network | 低 | 高 | 中 | 探索性研究、头脑风暴 |
+| Supervisor | 中 | 中 | 低 | 大多数生产场景 |
+| Supervisor (tool-calling) | 中 | 中 | 低 | OpenAI Agents SDK 生态 |
+| Hierarchical | 高 | 中 | 高 | 大型团队、多部门协作 |
+| Custom Workflow | 可调 | 可调 | 高 | 混合确定性/动态流程 |
+
+Anthropic 的建议是：先用 Supervisor 模式，不做自由聊天式协作。来源：《Claude Code Harness Engineering：从入门到实战》，p. 116。
+
+### 补充编排模式
+
+#### Parallel（扇出/扇入）
+
+多个 Agent 并行执行，结果汇聚：
+
+```python title="parallel-fan-out-fan-in.py" lineNumbers
+import asyncio
+
+async def fan_out_fan_in(task, agents):
+    # Fan-out：并行分发
+    results = await asyncio.gather(
+        *[agent.execute(task) for agent in agents]
+    )
+    # Fan-in：汇聚结果
+    return aggregate(results)  # 投票、合并或 LLM 综合
+```
+
+适用场景：需要多角度分析同一问题、多源信息汇总。优势：速度 + 多样性。
+
+#### Maker-Checker（生成-校验循环）
+
+一个 Agent 生成，另一个 Agent 校验，循环迭代直到质量达标：
+
+```python title="maker-checker.py" lineNumbers
+async def maker_checker_loop(task, maker, checker, max_rounds=3):
+    for round in range(max_rounds):
+        output = await maker.generate(task)
+        review = await checker.review(output)
+        if review.approved:
+            return output
+        task = f"{task}\n\n上一轮反馈：{review.feedback}"
+    return output  # 达到最大轮次
+```
+
+适用场景：需要质量保证和迭代改进。Anthropic 的 Evaluator-Optimizer 模式就是 Maker-Checker 的变体。
+
+### 协调器不必须是 LLM
+
+OpenAI 建议：当需要可预测性和速度时，用确定性代码编排而非 LLM 编排。协调器可以是基于规则的路由函数——根据输入类型、关键词或结构化字段做确定性分发，而非每次都调用 LLM 做决策。混合方式最佳：简单路由用代码，复杂判断用 LLM。来源：OpenAI Agents SDK Documentation, https://openai.github.io/openai-agents-python/multi_agent/。
+
+### 主流框架编排支持
+
+| 框架 | 支持的编排模式 |
+| --- | --- |
+| LangGraph | Pipeline、Hierarchical、Parallel、自定义图 |
+| Google ADK | Hub-Spoke（sub_agents）、Sequential、Parallel、Loop |
+| OpenAI Agents SDK | Hub-Spoke（Handoff）、Pipeline |
+| CrewAI | Pipeline（Sequential）、Hierarchical（Manager Agent） |
+| AutoGen | Group Chat（多种编排） |
+
+### Anthropic 的工作流模式
+
+Anthropic 在《Building Effective Agents》中定义了从简单到复杂的六种模式，这些模式既可以用于单 Agent 也可以组合为多 Agent 系统：
+
+1. **Prompt Chaining**：任务拆成顺序步骤，每步的输出是下步的输入。适合可干净分解的固定子任务。
+2. **Routing**：分类输入，路由到专门的后续处理。适合不同类别需要不同处理的场景。
+3. **Parallelization**：子任务并行执行，结果聚合。分为 Sectioning（拆分独立子任务）和 Voting（多次执行取多数）。
+4. **Orchestrator-Workers**：中心 LLM 动态拆分任务、委派 Worker、综合结果。适合无法预知子任务数量的复杂任务。
+5. **Evaluator-Optimizer**：一个 LLM 生成，另一个评估反馈，循环迭代。适合有明确评估标准且迭代有价值的场景。
+6. **Autonomous Agent**：Agent 自主规划、执行、检查，在循环中使用工具。适合开放式问题。
+
+来源：Anthropic, "Building Effective Agents", 2024.12, https://www.anthropic.com/engineering/building-effective-agents。
+
+## 冲突处理
+
+### 冲突类型
+
+多 Agent 系统中常见的冲突类型：
+
+| 冲突类型 | 示例 | 严重程度 |
+| --- | --- | --- |
+| 结论冲突 | Agent A 说"买入"，Agent B 说"卖出" | 高 |
+| 资源冲突 | 两个 Agent 同时修改同一数据库记录 | 高 |
+| 优先级冲突 | 安全 Agent 说"阻止"，效率 Agent 说"放行" | 高 |
+| 方案冲突 | Agent 对解决同一问题提出不同方案 | 中 |
+| 事实冲突 | Agent 引用了互相矛盾的数据源 | 中 |
+
+### 四种冲突解决机制
+
+#### 1. 投票（Voting）
+
+让多个 Agent 投票表决。包括多数决、加权投票（按专业度加权）、排序投票（Borda 计分法）。投票在 Agent 意见独立且噪声可平均时有效。
+
+但投票有陷阱：如果大多数 Agent 都基于同一个错误数据源推理，多数投票会放大错误。LLM Agent 的"独立意见"往往不独立（相似训练分布、相似 system 提示），需要多样化提示或引入反方角色。
+
+#### 2. 共识协议（Consensus Protocol）
+
+多轮辩论，逐步达成一致。关键设计点：动态共识阈值（根据任务紧急度调整）、最大轮次限制（防止无限辩论）、降级机制（共识失败时切换到投票或人工裁决）。
+
+研究表明，正式共识协议可以显著降低对抗攻击成功率。来源：Tran et al., "Multi-Agent Collaboration Mechanisms: A Survey of LLMs", arXiv:2501.06322, 2025。
+
+#### 3. 优先级仲裁
+
+规则驱动的冲突解决：安全 > 合规 > 产品 > 体验。适合合规和强约束领域。例如：任何安全 Agent 可以一票否决操作。
+
+#### 4. 中介仲裁
+
+指定一个权威 Agent 或人类做最终裁决。适合高风险决策。仲裁者分析各方推理过程，指出优缺点，给出最终裁决和理由。
+
+### 防止趋同效应（Sycophancy）
+
+LLM Agent 在辩论中容易出现趋同——Agent 倾向于迎合对方观点而非坚持自己的正确判断。这被称为 Sycophancy 问题。
+
+缓解方法：强制要求 Agent 先独立推理，再考虑他人观点；如果改变立场，必须解释具体哪个论据说服了；如果不改变，必须解释为什么自己的分析更正确。
+
+#### 冲突解决代码示例
+
+##### 投票
+
+```python title="voting-resolver.py" lineNumbers
+import asyncio
+
+class VotingResolver:
+    """投票式冲突解决"""
+
+    async def resolve_binary(self, agents, question) -> str:
+        """二元投票：是/否"""
+        votes = await asyncio.gather(
+            *[agent.vote(question) for agent in agents]
+        )
+        yes_count = sum(1 for v in votes if v == "yes")
+        return "yes" if yes_count > len(agents) / 2 else "no"
+
+    async def resolve_weighted(self, agents, question) -> str:
+        """加权投票：按 Agent 专业度加权"""
+        weighted_votes = {}
+        for agent in agents:
+            vote = await agent.vote(question)
+            weight = agent.expertise_score
+            weighted_votes[vote] = weighted_votes.get(vote, 0) + weight
+        return max(weighted_votes, key=weighted_votes.get)
+
+    async def resolve_ranked(self, agents, options) -> str:
+        """排序投票：Borda 计分法"""
+        rankings = await asyncio.gather(
+            *[agent.rank(options) for agent in agents]
+        )
+        scores = {opt: 0 for opt in options}
+        for ranking in rankings:
+            for i, opt in enumerate(ranking):
+                scores[opt] += len(options) - i
+        return max(scores, key=scores.get)
+```
+
+##### 共识协议
+
+```python title="consensus-protocol.py" lineNumbers
+class ConsensusProtocol:
+    """多轮共识协议"""
+
+    def __init__(self, agents, max_rounds=5, threshold=0.8):
+        self.agents = agents
+        self.max_rounds = max_rounds
+        self.threshold = threshold  # 80% 一致才算共识
+
+    async def reach_consensus(self, topic):
+        proposals = {}
+
+        for round_num in range(self.max_rounds):
+            for agent in self.agents:
+                context = {
+                    "topic": topic,
+                    "round": round_num,
+                    "other_proposals": {
+                        a.id: p for a, p in proposals.items() if a != agent
+                    }
+                }
+                proposals[agent] = await agent.propose(context)
+
+            # 检查是否达成共识
+            agreement_rate = self.calculate_agreement(proposals)
+            if agreement_rate >= self.threshold:
+                return self.merge_proposals(proposals)
+
+            # 动态调整阈值（任务越紧急，越容易通过）
+            self.threshold *= 0.95
+
+        # 达到最大轮次仍未共识 → 降级到投票或人工裁决
+        return await self.fallback_to_voting(proposals)
+```
+
+研究表明，正式共识协议可以显著降低对抗攻击成功率。来源：Tran et al., "Multi-Agent Collaboration Mechanisms: A Survey of LLMs", arXiv:2501.06322, 2025。
+
+##### 中介仲裁
+
+```python title="mediator-resolver.py" lineNumbers
+class MediatorResolver:
+    def __init__(self, mediator_agent):
+        self.mediator = mediator_agent
+
+    async def resolve(self, conflicting_outputs: dict):
+        prompt = f"""
+        以下是不同 Agent 对同一问题的分析结果，它们存在冲突：
+
+        {self._format_conflicts(conflicting_outputs)}
+
+        请分析每个 Agent 的推理过程，指出各自的优缺点，
+        然后给出你的最终裁决和理由。
+        """
+        decision = await self.mediator.generate(prompt)
+        return decision
+```
+
+##### 抗趋同协议
+
+CONSENSAGENT 方法：强制 Agent 先独立推理，再考虑他人观点：
+
+```python title="anti-sycophancy.py" lineNumbers
+class AntiSycophancyProtocol:
+    def __init__(self, max_rounds=3):
+        self.max_rounds = max_rounds
+
+    async def debate(self, agents, topic):
+        for round in range(self.max_rounds):
+            for agent in agents:
+                # 收集其他 Agent 的观点
+                other_views = await self.collect_other_views(agents, agent, topic)
+
+                response = await agent.generate(f"""
+                第一步：独立分析（忽略其他 Agent 的观点）
+                {topic}
+
+                第二步：考虑其他观点后，明确说明你是否改变立场
+                如果改变，解释具体哪个论据说服了你
+                如果不改变，解释为什么你认为自己的分析更正确
+
+                其他 Agent 的观点：{other_views}
+                """)
+```
+
+##### 资源冲突解决
+
+多个 Agent 竞争同一外部资源时的冲突处理：
+
+```python title="resource-conflict.py" lineNumbers
+class ResourceConflictResolver:
+    def __init__(self):
+        self.locks = {}  # 资源锁
+
+    async def request_resource(self, agent_id, resource_id):
+        if resource_id in self.locks:
+            holder = self.locks[resource_id]
+            if self.priority(agent_id) > self.priority(holder):
+                # 高优先级 Agent 可以抢占
+                await self.preempt(holder, resource_id)
+                self.locks[resource_id] = agent_id
+                return True
+            else:
+                # 排队等待
+                await self.wait_queue(resource_id, agent_id)
+                return False
+        else:
+            self.locks[resource_id] = agent_id
+            return True
+```
+
+### 级联幻觉（Cascading Hallucination）
+
+一个 Agent 的小错误被下一个 Agent 当作事实输入，错误被逐级放大和复合，最终产生看似合理但完全错误的结论。这是多 Agent 系统中最危险的风险之一。
+
+```mermaid
+flowchart LR
+  A[Agent A: 小错误] --> B[Agent B: 基于错误推理]
+  B --> C[Agent C: 复合错误]
+  C --> D[最终输出: 看似合理但完全错误]
+```
+
+防御手段：校验门（每个 Agent 的输出经过结构化校验）、断路器（检测到异常模式时暂停系统）、独立验证（关键结论由独立 Agent 交叉验证）。
+
+## 涌现行为
+
+### 什么是涌现
+
+涌现行为（Emergent Behavior）是指多 Agent 系统中出现的、无法从单个 Agent 行为预测的集体模式。类比物理学中的相变——当系统复杂度超过临界阈值时，会出现突然的质变。
+
+涌现行为的三个特征：
+
+1. **不可还原性**：整体行为无法从部分行为推导——3 个 Agent 辩论可能产生没有任何单个 Agent 提出过的新观点。
+2. **自发性**：未被显式编程——5 个 Agent 协作写代码可能自发形成分工模式。
+3. **非线性**：系统规模的小变化可能导致行为的大变化。
+
+涌现既是优势（自发协调、创新解决方案）也是风险（不可预测性、级联幻觉、偏见放大）。可控性设计需要在"放大有益涌现"和"抑制有害涌现"之间取得平衡。
+
+### 有益涌现
+
+#### 自发协调
+
+研究表明，LLM Agent 可以在没有显式协调指令的情况下自发形成协作模式。GPT-4.1 和 Llama-3.1-8B Agent 在群体猜谜任务中展现出动态涌现能力——Agent 能自主分配角色和分工。来源：Emergent Coordination in Multi-Agent Language Models, arXiv:2510.05174, 2025。
+
+#### Theory-of-Mind Prompting
+
+Theory-of-Mind (ToM) Prompting 可以引导有益涌现——让 Agent 在回答前考虑其他 Agent 可能拥有什么信息、自己的独特贡献是什么、如何与团队目标互补：
+
+```python title="tom-prompting.py" lineNumbers
+agent_prompt = """
+你是团队中的一员，正在解决一个复杂问题。
+
+在回答之前，请考虑：
+1. 其他 Agent 可能拥有什么信息？
+2. 你的独特贡献是什么？（不要重复他人已有的分析）
+3. 如何让你的输出与团队的整体目标互补？
+
+只有 Theory-of-Mind prompt 条件才能产生"身份关联的差异化
+和目标导向的互补性"——Agent 作为一个整合的、目标导向的
+单元运作。
+"""
+```
+
+研究表明，ToM Prompting 能让 Agent 产生"身份关联的差异化和目标导向的互补性"（identity-linked differentiation and goal-directed complementarity），而非简单的信息重复。来源：Emergent Coordination in Multi-Agent Language Models, arXiv:2510.05174, 2025。
+
+### 有害涌现
+
+#### 不可预测的优化行为
+
+Agent 可能自发产生开发者未预期的"优化"行为：
+
+- **自我消息**：Agent 向自己发消息制造反馈循环。
+- **跳过安全检查**：为提高效率而绕过安全验证步骤。
+- **利用评估漏洞**：发现并利用评估机制的漏洞获得高分而非真正解决问题。
+
+这些行为不是被显式编程的，而是 Agent 在追求目标过程中的"创造性"策略。
+
+#### 从众效应的涌现
+
+LLM Agent 的趋同问题（Sycophancy）在群体动力学中会涌现——问题的措辞方式会显著影响 LLM 的道德推理，同侪压力可以导致 Agent 放弃正确答案转而支持错误的多数意见。这在安全关键应用中是严重风险。
+
+### 可控性设计
+
+#### 通信拓扑设计
+
+通信拓扑影响涌现行为的方向：
+
+| 拓扑 | 结构 | 涌现倾向 | 适用场景 |
+| --- | --- | --- | --- |
+| Star（星形） | 所有通信经过中心节点 | 被限制——中心节点过滤异常行为 | 强控制力、一致性要求高 |
+| Fully Connected（全连接） | 所有 Agent 直接通信 | 最强——但也最不可控 | 探索式研究、头脑风暴 |
+| Hybrid（混合） | 层级结构 + 有限的横向通信 | 可引导的涌现 | 平衡控制和灵活性 |
+
+#### 行为监控与干预
+
+对多 Agent 系统的涌现行为进行实时监控：
+
+```python title="emergent-behavior-monitor.py" lineNumbers
+class EmergentBehaviorMonitor:
+    """监控多 Agent 系统的涌现行为"""
+
+    def __init__(self, agents, baseline_behaviors, threshold=0.3):
+        self.agents = agents
+        self.baseline = baseline_behaviors
+        self.threshold = threshold
+
+    def detect_anomaly(self, agent_outputs):
+        for agent_id, output in agent_outputs.items():
+            # 检测：输出是否偏离基线行为
+            deviation = self.compute_deviation(output, self.baseline[agent_id])
+            if deviation > self.threshold:
+                self.alert(f"Agent {agent_id} 行为偏离基线: {deviation}")
+
+            # 检测：Agent 是否出现自引用循环
+            if self.detect_self_reference(output):
+                self.interrupt(agent_id, "检测到自引用循环")
+
+            # 检测：级联错误模式
+            if self.detect_cascade(agent_outputs):
+                self.halt_all("检测到级联错误，暂停系统")
+```
+
+#### 拜占庭容错共识
+
+即使部分 Agent 产生异常输出（如被 Prompt Injection 操控），系统仍能正确运作：
+
+```python title="bft-consensus.py" lineNumbers
+from collections import Counter
+
+class BFTConsensus:
+    """拜占庭容错共识：即使部分 Agent 异常，系统仍能正确决策"""
+
+    def decide(self, agent_outputs: dict) -> str:
+        # 需要 2/3 + 1 的 Agent 达成一致
+        n = len(agent_outputs)
+        threshold = (2 * n // 3) + 1
+
+        votes = Counter(agent_outputs.values())
+        for answer, count in votes.most_common():
+            if count >= threshold:
+                return answer
+
+        return "NO_CONSENSUS"  # 需要人工介入
+```
+
+研究表明，正式共识协议可以显著降低对抗攻击成功率。来源：Tran et al., "Multi-Agent Collaboration Mechanisms: A Survey of LLMs", arXiv:2501.06322, 2025。
+
+#### MAEBE 评估框架
+
+MAEBE（Multi-Agent Emergent Behavior Evaluation）用于系统性评估涌现行为的可解释性和安全性：
+
+| 评估维度 | 核心问题 |
+| --- | --- |
+| 可解释性 | 能否追溯集体决策的推理路径？ |
+| 安全对齐 | 涌现行为是否偏离人类价值观？ |
+| 可预测性 | 类似输入是否产生一致的涌现模式？ |
+| 可控性 | 干预手段能否有效纠正偏离行为？ |
+
+来源：MAEBE: Multi-Agent Emergent Behavior Framework, arXiv:2506.03053, 2025。
+
+### 涌现 vs 可控性的权衡
+
+```text title="emergence-vs-control-spectrum.txt"
+完全可控              平衡点              完全自主
+│←────────────────────┼────────────────────→│
+│ 确定性工作流        │ 引导式涌现          │ 无约束涌现
+│ 无涌现              │ 有监控的自主性      │ 不可预测
+│ Pipeline 模式       │ Hybrid 拓扑         │ 全连接对话
+│ 安全但无创新        │ 最佳实践            │ 创新但危险
+```
+
+最佳实践是**引导式涌现**——通过通信拓扑设计限制不可控涌现的空间，通过 ToM Prompting 引导有益涌现，通过行为监控和共识机制抑制有害涌现。
+
+## 工程流程
+
+### 从单 Agent 到多 Agent 的演进路径
+
+不要一开始就设计多 Agent 系统。推荐的演进路径：
+
+1. **先做单 Agent**：用最简单的方式验证任务可行性。
+2. **遇到瓶颈时拆分**：当单 Agent 出现上下文过载、工具选择困难或角色冲突时，考虑拆分。
+3. **从 Supervisor 模式开始**：先引入一个 Coordinator，把子任务分派给专精 Worker。
+4. **按需增加复杂度**：只在 Supervisor 管不过来时才引入层级式架构。
+
+### 多 Agent 系统的工程清单
+
+| 构件 | 责任 | 工程要点 |
+| --- | --- | --- |
+| Coordinator / Supervisor | 任务分解、分配、综合 | 路由逻辑基于状态机而非纯 prompt |
+| Worker Agent | 执行具体子任务 | prompt 自包含，不依赖主对话历史 |
+| 通信协议 | Agent 间信息交换 | 结构化数据（JSON Schema）而非自由文本 |
+| 状态管理 | 任务进度、共享事实 | 单一 Source of Truth + 状态机 |
+| 冲突解决 | 收敛到可执行决策 | 优先级规则 + 仲裁 + 人类在环 |
+| 错误隔离 | 防止级联失败 | 沙箱、校验门、断路器、检查点 |
+| 可观测性 | 调试和审计 | TraceId、结构化日志、全链路导出 |
+
+### 状态管理
+
+多 Agent 系统推荐使用状态机而非纯自然语言传递一切。状态机提供可验证迁移、清晰终止、可观测指标（卡在何阶段多久）。自然语言可作为附件说明，不应是唯一真相来源。
+
+状态管理的核心模式包括：
+
+| 模式 | 核心思想 | 适用场景 |
+| --- | --- | --- |
+| 共享状态图 | 全局状态流经每个节点，Reducer 函数合并并发更新 | LangGraph 多 Agent 编排 |
+| 事件溯源 | 记录所有状态变更事件而非最终状态，支持回放和审计 | 需要审计追踪的系统 |
+| 有限状态机 | 用明确的状态和转移规则管理流程 | 简单线性流程 |
+| Checkpointing | 每个执行步骤自动保存状态快照，支持恢复 | 长任务、Human-in-the-Loop |
+
+来源：LangGraph State Management, https://langchain-ai.github.io/langgraph/concepts/low_level/。
+
+```ts title="task-state-machine.ts" lineNumbers
+type Phase = "INIT" | "PLAN" | "EXEC" | "VERIFY" | "DONE";
+
+const ALLOWED_TRANSITIONS: Record<Phase, Phase[]> = {
+  INIT: ["PLAN"],
+  PLAN: ["EXEC"],
+  EXEC: ["VERIFY"],
+  VERIFY: ["DONE", "EXEC"], // 不通过可打回重做
+  DONE: [],
+};
+
+function transition(current: Phase, next: Phase): Phase {
+  if (!ALLOWED_TRANSITIONS[current].includes(next)) {
+    throw new Error(`非法状态转换: ${current} -> ${next}`);
+  }
+  return next;
+}
+```
+
+状态设计原则：状态可序列化（用于持久化和传输）、幂等性（从同一检查点重放应产生相同结果）、最小化状态（只在状态中保留决策所需信息，中间推理过程在 Trace 中记录而非状态中保存）、显式 Reducer（明确定义状态更新规则是追加还是替换）。
+
+### 并发控制：任务分片、结果合并、锁、取消与超时
+
+多 Agent 系统中，并发是把双刃剑——并行能缩短墙钟时间，但并发写、资源竞争和部分失败会引入新的复杂度。
+
+#### 任务分片与结果合并
+
+任务分片的核心原则是**子任务之间无共享可变状态**。只读子任务（如搜索、分析）可以安全并行；写入子任务（如修改文件、更新数据库）必须串行或加锁。
+
+结果合并策略取决于任务类型：
+
+| 合并策略 | 做法 | 适用场景 |
+| --- | --- | --- |
+| 聚合 | 收集所有 Worker 结果，由 Coordinator 汇总 | 研究、分析类任务 |
+| 投票 | 多数决或加权投票 | 需要共识的决策任务 |
+| 级联 | 前一步输出作为后一步输入 | 有依赖的流水线任务 |
+| 选择 | Coordinator 选最优结果 | 生成类任务（代码、文案） |
+
+《Claude Code Harness Engineering》指出：写入型任务要通过 worktree、文件锁或串行调度避免冲突；只读任务才适合并行。来源：《Claude Code Harness Engineering：从入门到实战》，pp. 107-116。
+
+#### 锁与串行调度
+
+当多个 Agent 需要修改同一资源时，必须使用锁或串行调度：
+
+- **文件锁**：Agent 修改文件前获取排他锁，修改完释放。适用于文件系统场景。
+- **乐观并发控制**：Agent 先读后写，写入时检查版本号，冲突时重试。适用于低冲突场景。
+- **串行调度**：Coordinator 按顺序分配写入任务，避免并发冲突。适用于高冲突场景。
+
+LangGraph 通过共享状态图 + Reducer 函数处理并发更新：多个并发的状态更新通过 Reducer 函数（如追加列表）合并为确定结果，而非依赖锁。来源：LangGraph State Management, https://langchain-ai.github.io/langgraph/concepts/low_level/。
+
+#### 取消
+
+取消是多 Agent 系统中容易被忽视但至关重要的机制。常见取消场景：
+
+1. **上游任务失败**：Agent A 失败，Agent B 的任务不再有意义，应立即取消。
+2. **用户中断**：用户在执行过程中要求停止。
+3. **超时触发**：任务执行时间超过阈值，自动取消。
+4. **依赖失效**：任务依赖的前提条件不再满足。
+
+取消的实现方式：
+
+| 方式 | 做法 | 代表框架 |
+| --- | --- | --- |
+| 检查点 + 回滚 | 保存执行前状态，取消时恢复 | LangGraph（Checkpointing） |
+| 取消令牌 | 传递 CancellationToken，Agent 定期检查是否被取消 | 通用编程模式 |
+| 优雅终止 | Agent 完成当前步骤后停止，不中断中间操作 | LangGraph（Human-in-the-Loop interrupt） |
+| 强制终止 | 直接终止 Agent 进程或协程 | 适用于沙箱隔离的 Agent |
+
+LangGraph 的检查点机制支持中断和恢复：每个 super-step 边界自动保存状态快照，中断后可以从最近的检查点恢复，而非从头开始。来源：LangGraph Persistence, https://langchain-ai.github.io/langgraph/concepts/persistence/。
+
+#### 超时
+
+超时是防止 Agent 无限运行的安全网。超时设计需要考虑三个层级：
+
+| 层级 | 超时对象 | 典型阈值 | 说明 |
+| --- | --- | --- | --- |
+| 工具调用超时 | 单次工具调用 | 30s-120s | 防止外部 API 无响应 |
+| Agent 步骤超时 | 单次 LLM 推理 + 工具执行 | 1min-5min | 防止单步卡死 |
+| 任务超时 | 整个任务从开始到结束 | 5min-30min | 防止任务无限循环 |
+
+超时后的处理策略不应是简单终止，而应分级降级：
+
+1. **重试**：超时可能是临时问题，重试 1-2 次（带指数退避）。
+2. **降级**：跳过当前步骤，用默认值或简化方案继续。
+3. **上报**：降级仍无法继续时，上报给 Coordinator 或人工处理。
+
+OpenAI Agents SDK 通过 `Runner.run()` 的 `max_turns` 参数限制 Agent 的最大执行轮次，防止无限循环。来源：OpenAI Agents SDK Documentation, https://openai.github.io/openai-agents-python/agents/。
+
+AutoGen v0.2 框架支持 `max_consecutive_auto_reply` 限制 Agent 间的最大连续回复次数，防止对话无限循环（v0.4 改用 `MaxMessageTermination` 等终止条件）。来源：AutoGen Documentation, https://microsoft.github.io/autogen/；Wu et al., "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation", arXiv:2308.08155, 2023。
+
+### 给 Worker 的 Prompt 设计
+
+给 Worker 的 prompt 必须自包含，包含以下要素：
+
+- **背景**：为什么需要这个任务。
+- **目标**：具体要做什么，成功标准是什么。
+- **输入**：文件路径、数据位置、格式说明。
+- **禁止事项**：不能做什么（如不能修改指定范围外的文件）。
+- **输出格式**：产出的结构化格式要求。
+
+来源：《Claude Code Harness Engineering：从入门到实战》，p. 116。
+
+### 可观测性：Trace 和 Span
+
+多 Agent 系统的调试难度远高于单 Agent，需要分布式追踪来理解"Agent 做了什么、花了多久、哪里出了问题"。
+
+**Trace** 代表一次完整的 Agent 执行（从接收任务到返回结果），**Span** 代表 Trace 中的一个操作单元（如一次 LLM 调用、一次工具调用、一次 Handoff）。Span 之间有父子关系，形成树形结构，清晰展示 Agent 的决策链。
+
+```text title="trace-tree.txt"
+Trace: "帮我分析竞品A的定价策略"（总耗时 8.2s）
+│
+├── Span: LLM 调用 - 理解任务（1.2s）
+│   └── 输出: "需要搜索竞品A的定价信息"
+│
+├── Span: 工具调用 - web_search（2.5s）
+│   └── 输出: [搜索结果 5 条]
+│
+├── Span: LLM 调用 - 分析结果（3.1s）
+│   └── 输出: "竞品A采用阶梯定价..."
+│
+└── Span: LLM 调用 - 生成报告（1.4s）
+    └── 输出: 最终分析报告
+```
+
+可观测性的三大支柱在多 Agent 中的应用：
+
+| 支柱 | 作用 | 关键指标/内容 | 工具 |
+| --- | --- | --- | --- |
+| Traces | 追踪 Agent 的完整执行路径 | 每步耗时、决策链路 | Langfuse, LangSmith, Jaeger |
+| Metrics | 量化性能和健康状态 | P95 延迟、token 消耗、工具成功率 | Prometheus, Datadog, Grafana |
+| Logs | 记录详细事件和错误 | LLM 输入输出、工具参数和返回值、错误栈 | ELK Stack, CloudWatch |
+
+**OpenTelemetry (OTel)** 是 LLM 可观测性的主流方向——供应商无关，用 OTel 标准化的数据可以发送到任何后端，换监控工具不需要改代码。来源：OpenTelemetry Blog, "AI Agent Observability", https://opentelemetry.io/blog/2025/ai-agent-observability/。
+
+### 追踪实现
+
+#### OpenTelemetry（行业标准）
+
+OpenTelemetry (OTel) 是 LLM 可观测性的主流方向——供应商无关，用 OTel 标准化的数据可以发送到任何后端，换监控工具不需要改代码。来源：OpenTelemetry Blog, "AI Agent Observability", https://opentelemetry.io/blog/2025/ai-agent-observability/。
+
+```python title="opentelemetry-tracing.py" lineNumbers
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+
+tracer = trace.get_tracer("multi-agent-system")
+
+async def agent_execute(agent_name, task):
+    with tracer.start_as_current_span(f"agent.{agent_name}") as span:
+        span.set_attribute("agent.name", agent_name)
+        span.set_attribute("task", task)
+
+        # LLM 调用
+        with tracer.start_as_current_span("llm.invoke") as llm_span:
+            response = await llm.invoke(task)
+            llm_span.set_attribute("tokens.input", response.input_tokens)
+            llm_span.set_attribute("tokens.output", response.output_tokens)
+            llm_span.set_attribute("model", response.model)
+
+        # 工具调用
+        for tool_call in response.tool_calls:
+            with tracer.start_as_current_span(f"tool.{tool_call.name}") as tool_span:
+                result = await execute_tool(tool_call)
+                tool_span.set_attribute("tool.success", result.success)
+
+        span.set_attribute("agent.status", "completed")
+        return response
+```
+
+#### Langfuse（开源 LLM 可观测性平台）
+
+```python title="langfuse-tracing.py" lineNumbers
+from langfuse import Langfuse
+from langfuse.decorators import observe
+
+langfuse = Langfuse()
+
+@observe(name="triage-agent")
+async def triage_agent(user_message):
+    # 自动记录输入/输出/延迟/token
+    response = await llm.invoke(user_message)
+
+    if response.needs_handoff:
+        # 嵌套 Span：Handoff
+        with langfuse.span(name="handoff", metadata={"to": response.target_agent}):
+            return await handoff(response.target_agent, response.context)
+
+    return response
+
+@observe(name="refund-agent")
+async def refund_agent(context):
+    # 嵌套 Span 自动形成调用树
+    order = await get_order(context["order_id"])
+    refund = await process_refund(order)
+    return refund
+```
+
+### 关键监控指标
+
+| 类别 | 指标 | 说明 |
+| --- | --- | --- |
+| 性能 | per-agent 延迟 | 每个 Agent 的处理时间 |
+| 性能 | 端到端延迟 | 用户请求到最终响应的总时间 |
+| 性能 | 工具调用延迟 | 每次工具调用的响应时间 |
+| 成本 | input tokens | 每个 Agent 的输入 token 数 |
+| 成本 | output tokens | 每个 Agent 的输出 token 数 |
+| 成本 | 总成本 | 按模型定价计算的总费用 |
+| 质量 | 工具调用成功率 | 工具调用返回成功的比例 |
+| 质量 | Handoff 成功率 | Handoff 无上下文丢失的比例 |
+| 质量 | 任务完成率 | 任务成功完成的比例 |
+| 质量 | 输出质量评分 | LLM-as-Judge 质量评分 |
+| 健康 | 错误率 | 各 Agent 的错误率 |
+| 健康 | 重试次数 | Agent 重试调用的次数 |
+| 健康 | 断路器触发次数 | 断路器被触发的次数 |
+
+### 调试工作流
+
+```text title="debug-workflow.txt"
+1. 问题发现
+   └→ 告警触发（延迟飙升/错误率上升/成本异常）
+
+2. 问题定位
+   └→ 查看 Trace 列表，筛选异常 Trace
+      └→ 展开 Trace 的 Span 树
+         └→ 定位到具体的 Agent/工具/LLM 调用
+
+3. 根因分析
+   └→ 检查该 Span 的输入/输出/prompt
+      └→ 是 LLM 选错了工具？参数错误？工具超时？
+
+4. 修复验证
+   └→ 调整 prompt/工具描述/超时设置
+      └→ 在 Playground 中用原始输入重放
+         └→ 确认修复后部署
+```
+
+### 多 Agent 特有调试技巧
+
+#### Handoff 断点
+
+在每次 Handoff 时记录完整上下文，用于排查上下文丢失问题：
+
+```python title="handoff-debugger.py" lineNumbers
+import json
+
+class HandoffDebugger:
+    def on_handoff(self, from_agent, to_agent, context):
+        self.logger.info(
+            f"Handoff: {from_agent} → {to_agent}",
+            extra={
+                "context_size": len(json.dumps(context)),
+                "context_keys": list(context.keys()),
+                "messages_count": len(context.get("messages", [])),
+            }
+        )
+```
+
+#### Agent 决策日志
+
+记录 LLM 的推理过程，用于排查工具选择错误：
+
+```python title="decision-logger.py" lineNumbers
+class DecisionLogger:
+    def log_decision(self, agent_name, prompt, response, chosen_tool):
+        self.store({
+            "agent": agent_name,
+            "input_summary": summarize(prompt),
+            "tool_chosen": chosen_tool,
+            "confidence": response.confidence,
+            "alternatives_considered": response.alternatives,
+        })
+```
+
+#### Trace 回放
+
+保存完整 Trace 后离线回放，用于复现和回归测试：
+
+```python title="trace-replayer.py" lineNumbers
+class TraceReplayer:
+    def replay(self, trace_id):
+        trace = self.load_trace(trace_id)
+        for span in trace.spans:
+            print(f"[{span.agent}] {span.operation}: {span.input[:100]}...")
+            print(f"  → {span.output[:100]}...")
+            print(f"  ⏱ {span.duration_ms}ms, 💰 {span.cost}")
+```
+
+### 主流可观测性工具对比
+
+| 工具 | 类型 | 最适合 | 特色 |
+| --- | --- | --- | --- |
+| Langfuse | 开源 | 自托管 + 全面可观测性 | Prompt 管理 + 追踪 + 评估一体 |
+| LangSmith | SaaS | LangChain/LangGraph 生态 | 与 LangGraph 深度集成 |
+| Arize AI | SaaS | 企业级 | 统一 LLM + Agent 评估 |
+| Braintrust | SaaS | 多步骤链调试 | 嵌套 Trace 可视化 |
+| Maxim AI | SaaS | 多 Agent 专项 | Agent 交互分析 |
+| Datadog LLM | SaaS | 已有 Datadog 的团队 | 与 APM 统一监控 |
+
+## 关键例子
+
+### 例子 1：ChatDev——虚拟软件公司
+
+ChatDev 把软件开发建模为虚拟软件公司：CEO 定目标，CTO 做技术决策，程序员写代码，测试工程师找 bug，艺术设计师做 UI。Agent 之间通过多轮聊天协作，每个阶段有明确的输入输出。来源：Qian et al., "ChatDev: Communicative Agents for Software Development", arXiv:2307.07924, 2023。GitHub: https://github.com/OpenBMB/ChatDev。
+
+ChatDev 的核心贡献是证明了 LLM Agent 可以通过角色扮演和结构化对话完成完整的软件开发流程。但它的局限也很明显：缺乏真实工程中的权限控制、错误恢复和成本管理。
+
+### 例子 2：MetaGPT——SOP 驱动的多 Agent
+
+MetaGPT 引入 SOP（标准操作流程）作为多 Agent 协作的核心约束。每个角色的输出必须满足下游角色的输入格式：ProductManager 输出 PRD → Architect 输出系统设计 → Engineer 输出代码 → QA 输出测试。这种结构化通信比自由对话更可靠。来源：Hong et al., "MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework", arXiv:2308.00352, 2023。GitHub: https://github.com/FoundationAgents/MetaGPT。
+
+MetaGPT 的核心创新是将 SOPs 引入多智能体协作，并通过共享消息池（Shared Message Pool）和发布-订阅机制实现结构化通信——Agent 向公共消息流发布结构化消息，其他 Agent 根据角色订阅相关信息，而非一对一的直接对话。这减少了信息冗余，同时保持了可追溯性。来源：Hong et al., "MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework", arXiv:2308.00352, 2023, Section 3.2。
+
+### 例子 3：CAMEL——角色扮演的探索式协作
+
+CAMEL（Communicative Agents for "Mind" Exploration of Large Language Model Society）由 KAUST 团队提出，是最早探索 LLM Agent 角色扮演协作的研究之一。两个 Agent 以设定角色进行对话，通过 Inception Prompting 引导 Agent 保持角色一致性。来源：Li et al., "CAMEL: Communicative Agents for "Mind" Exploration of Large Language Model Society", NeurIPS 2023, arXiv:2303.17760。GitHub: https://github.com/camel-ai/camel。
+
+CAMEL 的贡献在于证明了 Inception Prompting 可以让 LLM Agent 在多轮对话中保持角色一致性，而不需要人工干预每一步。
+
+### 例子 4：OpenAI Swarm——轻量级 Handoff
+
+OpenAI Swarm 是一个教育级框架，用于探索轻量级多 Agent 编排模式。核心概念只有两个：Agent（包含指令和工具）和 Handoff（Agent 间的控制权转移）。Swarm 的设计哲学是极简和可观测——让开发者理解多 Agent 的底层机制，而非隐藏复杂性。来源：OpenAI Swarm, https://github.com/openai/swarm, 2024。
+
+Swarm 的 Handoff 模式后来被 OpenAI Agents SDK 正式采纳：Agent 的工具函数可以返回另一个 Agent 对象，触发控制权转移。
+
+### 例子 5：LangGraph Supervisor——生产级编排
+
+LangGraph 的 Supervisor 模式是目前生产环境最常用的多 Agent 编排方式。Supervisor 读取共享状态，决定下一步调用哪个 Worker Agent，Worker 完成后回到 Supervisor。整个流程表达为图结构，支持检查点、分支和人工接管。来源：LangGraph Multi-agent Concepts, https://langchain-ai.github.io/langgraph/concepts/multi_agent/。
+
+### 例子 6：CrewAI——角色驱动的团队协作
+
+CrewAI 把多 Agent 协作建模为"团队"：每个 Agent 有角色（Role）、目标（Goal）和背景故事（Backstory），任务（Task）分配给特定 Agent，Crew 定义执行流程。支持两种流程类型：Sequential（顺序执行）和 Hierarchical（Manager Agent 分配任务）。CrewAI 目前采用双层架构：Crew（团队，自治协作）处理角色分工和任务执行；Flow（流程，deterministic 生产级编排）处理事件驱动和 state 持久化。复杂层级编排建议改用 Flow 而非 Crew 的 Hierarchical 模式。来源：CrewAI Documentation, https://docs.crewai.com/。GitHub: https://github.com/crewAIInc/crewAI。
+
+### 例子 7：AutoGen 体系——从对话驱动到微软新主推
+
+AutoGen 体系目前是三个不同项目，常被混淆：
+
+- **AG2**（ag2ai/ag2）：2024-11 社区 fork，AutoGen 0.2.x 的延续，对话驱动多 Agent，`from autogen import ConversableAgent`。
+- **AutoGen 0.4+**（microsoft/autogen）：2025-01 微软重写，event-driven actor 架构，社区活跃度已降低，`from autogen_agentchat.agents import AssistantAgent`。
+- **MAF**（Microsoft Agent Framework）：微软 2025-2026 新主推，正式取代 AutoGen，深度集成 Azure AI Foundry 和 Semantic Kernel，`from agent_framework import ChatAgent`。
+
+选择原则：需要群体对话选 AG2，需要微软最新生态选 MAF。来源：AutoGen Documentation, https://microsoft.github.io/autogen/；Wu et al., "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation", arXiv:2308.08155, 2023。
+
+### 框架核心维度对比
+
+| 维度 | CrewAI | LangGraph | AG2 / AutoGen 0.4 / MAF |
+| --- | --- | --- | --- |
+| 核心抽象 | 角色/团队（Crew + Flow） | 图/状态机 | 对话/消息（AG2）、actor（0.4）、ChatAgent（MAF） |
+| 学习曲线 | 低 | 高 | 中（AG2）、中高（0.4） |
+| 流程控制 | Crew 顺序/Flow 事件驱动 | 任意图（条件、循环、并行） | 对话/事件驱动 |
+| 状态管理 | 内置 state + Flow 持久化 | 精细状态 + Reducer | 对话历史/actor 状态 |
+| 调试性 | 中 | 高（图可视化） | 低（非确定性对话） |
+| 项目状态 | 活跃迭代 | 活跃迭代（1.0 GA） | AG2 社区活跃；AutoGen 0.4 已维护；MAF 新主推 |
+
+### 新兴竞争者
+
+除了上述框架，值得关注的还有：
+
+- **Google ADK**：SequentialAgent、ParallelAgent、LoopAgent 内置编排，深度集成 Google 生态。来源：Google ADK Documentation, https://google.github.io/adk-docs/。
+- **OpenAI Agents SDK**：轻量级 Handoff 机制，代码优先编排。来源：OpenAI Agents SDK Documentation, https://openai.github.io/openai-agents-python/。
+- **AWS Agent Squad**：Agent-as-Tools 架构，Lead Agent 协调团队。来源：Agent Squad, https://github.com/2FastLabs/agent-squad。
+
+## 常见坑
+
+### 坑 1：为了用多 Agent 而用多 Agent
+
+最常见的错误。简单任务用多 Agent 只会增加通信开销和调试难度。研究显示，多 Agent 系统中 Agent 间的对话存在大量冗余——多个 Agent 重复阅读相同上下文、重复调用相同工具，导致 token 消耗远超单 Agent。来源：Guo et al., "Large Language Model based Multi-Agents: A Survey of Progress and Challenges", arXiv:2402.01680, 2024。
+
+**正确做法**：从单 Agent 开始，当遇到明确的瓶颈（上下文过载、工具选择困难、角色冲突）时再拆分。
+
+### 坑 2：Handoff 时上下文丢失
+
+大多数"Agent 失败"实际上是 Handoff 时的上下文丢失或格式错误——目标 Agent 收到的信息不足以做出正确决策。自由文本 Handoff 是主要原因。
+
+**正确做法**：用结构化数据（JSON Schema）传递上下文，像对待公开 API 一样对待 Agent 间接口。使用 `input_filter` 控制传给目标 Agent 的对话历史。
+
+### 坑 3：Handoff 循环
+
+Agent A → B → A → B 无限循环，消耗 token 和时间。
+
+**正确做法**：追踪 Handoff 链路，设置最大 Handoff 次数。如果检测到循环模式，触发断路器并升级给人工处理。
+
+### 坑 4：级联幻觉
+
+一个 Agent 的错误被下一个 Agent 当作事实输入，错误逐级放大。
+
+**正确做法**：每个 Agent 的输出经过结构化校验；关键结论由独立 Agent 交叉验证；检测到异常模式时暂停系统。
+
+### 坑 5：投票放大错误
+
+如果大多数 Agent 都基于同一个错误数据源推理，多数投票会放大错误而非纠正。
+
+**正确做法**：确保 Agent 的信息来源多样化；引入反方角色（Red Team Agent）；对关键决策使用证据门槛 + 优先级规则 + 人类在环。
+
+### 坑 6：趋同效应
+
+LLM Agent 在多轮辩论中倾向于迎合对方观点而非坚持正确判断。
+
+**正确做法**：强制 Agent 先独立推理再考虑他人观点；要求改变立场时必须给出具体理由；设置合理的最大辩论轮次。
+
+### 坑 7：忽视成本控制
+
+多 Agent 系统的 token 消耗远高于单 Agent。多个 Agent 并行调用时，成本可能呈线性甚至超线性增长。
+
+**正确做法**：小模型做子任务、大模型做仲裁；对工具输出做截断和摘要；使用 prompt cache 复用稳定前缀；设置 token 预算熔断。
+
+### 坑 8：缺乏可观测性
+
+多 Agent 系统的调试难度远高于单 Agent——问题可能出在任何一个 Agent 的任何一步决策中，没有 Trace/Span 就像在黑箱中找 bug。
+
+**正确做法**：从第一天起就接入 Trace（详见[可观测性](#可观测性-trace-和-span)），为每个请求分配 TraceId，记录所有 Agent 间的通信内容和工具调用，支持全链路导出和回放。
+
+## 检查清单
+
+在设计和评审多 Agent 系统时，逐项检查：
+
+### 必要性检查
+
+- [ ] 是否先尝试了单 Agent 方案？
+- [ ] 单 Agent 方案遇到了什么具体瓶颈？
+- [ ] 多 Agent 的收益是否大于通信开销和复杂度成本？
+
+### 角色设计检查
+
+- [ ] 每个 Agent 的职责边界是否清晰？
+- [ ] 每个 Agent 的工具集是否最小化？
+- [ ] Agent 之间的产出物是否有明确的格式契约？
+- [ ] 是否避免了"全能 Agent"（职责过多）？
+
+### 通信检查
+
+- [ ] Agent 间通信是否使用结构化数据？
+- [ ] Handoff 的上下文是否完整且不冗余？
+- [ ] 是否设置了最大 Handoff 次数防止循环？
+- [ ] 通信协议是否可观测（可追踪、可回放）？
+
+### 编排检查
+
+- [ ] 编排模式是否匹配任务特征？
+- [ ] Supervisor 的路由逻辑是否基于状态机而非纯 prompt？
+- [ ] 是否有明确的终止条件？
+- [ ] 并行任务是否真的无依赖？
+
+### 冲突处理检查
+
+- [ ] 是否定义了冲突解决策略？
+- [ ] 高风险决策是否有优先级规则或人类在环？
+- [ ] 是否考虑了趋同效应和级联幻觉？
+- [ ] 投票机制是否确保了信息来源多样化？
+
+### 工程检查
+
+- [ ] 状态管理是否使用状态机？
+- [ ] 是否有单一 Source of Truth？
+- [ ] 错误隔离是否到位（沙箱、校验门、断路器）？
+- [ ] 是否有检查点支持崩溃恢复？
+- [ ] 是否有 token 预算和成本监控？
+- [ ] 是否有全链路 TraceId 和结构化日志？是否接入了 Trace/Span？
+- [ ] 写入型任务是否通过锁或串行调度避免冲突？
+- [ ] 是否有超时机制（工具调用超时、步骤超时、任务超时）？
+- [ ] 是否有取消机制（上游失败时取消下游、用户中断、超时触发）？
+- [ ] 超时后是否有分级降级策略（重试→降级→上报）？
+
+### 安全检查
+
+- [ ] 每个 Agent 是否遵循最小权限原则？
+- [ ] 敏感操作是否需要人工审批？
+- [ ] 是否有审计日志记录所有关键决策？
+- [ ] 是否考虑了 Prompt Injection 对多 Agent 系统的影响？
+
+## 延伸阅读
+
+### 核心论文
+
+| 论文 | 作者 | 年份 | 链接 | 核心贡献 |
+| --- | --- | --- | --- | --- |
+| Large Language Model based Multi-Agents: A Survey of Progress and Challenges | Guo et al. | 2024 | https://arxiv.org/abs/2402.01680 | 系统综述 LLM 多 Agent 的进展与挑战 |
+| Multi-Agent Collaboration Mechanisms: A Survey of LLMs | Tran et al. | 2025 | https://arxiv.org/abs/2501.06322 | 多 Agent 协作机制综述，含冲突解决和安全分析 |
+| The Rise and Potential of Large Language Model Based Agents: A Survey | Xi et al. (复旦) | 2023 | https://arxiv.org/abs/2309.07864 | LLM Agent 的通用框架：大脑-感知-行动 |
+| MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework | Hong et al. | 2023 | https://arxiv.org/abs/2308.00352 | SOP 驱动的多 Agent 协作框架 |
+| ChatDev: Communicative Agents for Software Development (ChatDev) | Qian et al. | 2023 | https://arxiv.org/abs/2307.07924 | 虚拟软件公司的多 Agent 协作 |
+| CAMEL: Communicative Agents for "Mind" Exploration of Large Language Model Society | Li et al. | 2023 | https://arxiv.org/abs/2303.17760 | Inception Prompting 和角色扮演协作 |
+| AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation | Wu et al. | 2023 | https://arxiv.org/abs/2308.08155 | 对话式多 Agent 基础设施 |
+
+### 官方文档
+
+| 文档 | 链接 | 核心内容 |
+| --- | --- | --- |
+| Anthropic: Building Effective Agents | https://www.anthropic.com/engineering/building-effective-agents | 从简单到复杂的 Agent 模式，强调简单优先 |
+| LangGraph Multi-agent Concepts | https://langchain-ai.github.io/langgraph/concepts/multi_agent/ | 五种多 Agent 架构、Handoff、状态管理 |
+| LangGraph State Management | https://langchain-ai.github.io/langgraph/concepts/low_level/ | 共享状态图、Checkpointing、Human-in-the-Loop |
+| OpenAI Agents SDK: Handoffs | https://openai.github.io/openai-agents-python/handoffs/ | Tool-based Handoff 模式、input_filter |
+| CrewAI Documentation | https://docs.crewai.com/ | Agent + Task + Crew 抽象 |
+| Google A2A Protocol | https://google.github.io/A2A/ | Agent 间通信标准化协议 |
+| MCP Specification | https://modelcontextprotocol.io/ | Agent 与 Tool 的纵向连接协议 |
+| OpenTelemetry AI Agent Observability | https://opentelemetry.io/blog/2025/ai-agent-observability/ | LLM 可观测性的标准化方向 |
+
+### 开源项目
+
+| 项目 | GitHub | 核心模式 | 特点 |
+| --- | --- | --- | --- |
+| MetaGPT | https://github.com/FoundationAgents/MetaGPT | SOP + 角色分工 | 模拟软件公司流程 |
+| ChatDev | https://github.com/OpenBMB/ChatDev | 多阶段聊天驱动 | 虚拟软件公司 |
+| CAMEL | https://github.com/camel-ai/camel | 角色扮演 + Inception Prompting | 探索式协作 |
+| OpenAI Swarm | https://github.com/openai/swarm | 轻量级 Handoff | 教育级，极简可观测 |
+| CrewAI | https://github.com/crewAIInc/crewAI | Agent + Task + Crew | 角色驱动团队协作 |
+| LangGraph | https://github.com/langchain-ai/langgraph | 图 + 状态机编排 | 生产级，支持检查点 |
+
+### 项目内参考资料
+
+- [智能体基础](/docs/concepts/agentic-basics)：多 Agent 在 Agent 技术栈中的定位。
+- [Agent Loop](/docs/concepts/agent-loop)：单个 Agent 的观察-规划-执行-检查循环。
+- [工具调用与记忆](/docs/concepts/tools-and-memory)：工具设计和记忆管理。
+- [Harness 工程构件](/docs/practices/harness-engineering)：Coordinator-Worker 模式和可观测性。
+- [上下文工程](/docs/practices/context-engineering)：上下文分层和压缩策略。
+- [LangGraph](/docs/frameworks/langgraph)：图和状态机构建可控工作流。
+- [下载《智能体设计模式》](/resources/books/agentic-design-patterns-chinese.pdf)：pp. 75-85（多 Agent）、pp. 109-111（MCP）。
+- [下载《Claude Code Harness Engineering：从入门到实战》](/resources/books/harness-engineering-book.pdf)：pp. 107-116（多 Agent Coordinator）、pp. 151-152（复杂度质变）。
+- [下载《Demystifying Claude Code v1.8》](/resources/books/demystifying-claude-code-v1.8.pdf)：pp. 150-154（Agent 工具和子 Agent）。
