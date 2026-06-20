@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./public/brand/damn-agent-logo.svg" alt="Damn Agent project logo" width="120" height="120" />
+</p>
+
 # Damn Agent
 
 Damn Agent（damnagent.org）是一个面向开发者的 AI Agent 技术学习文档站。它用中文系统梳理智能体核心概念、工程实践、框架工具和案例拆解，目标是帮助开发者把 Agent 从“概念演示”推进到“可运行、可调试、可评测、可维护”的工程系统。

@@ -3,6 +3,11 @@ export const siteConfig = {
   cnName: "智能体工程文档",
   version: "0.2.0-beta",
   versionLabel: "Beta",
+  brand: {
+    logo: "/brand/damn-agent-logo.svg",
+    icon: "/brand/damn-agent-icon.ico",
+    appleTouchIcon: "/brand/apple-touch-icon.png",
+  },
   avatar: "/avatars/maintainer-iammm0.jpg",
   maintainer: {
     id: "iammm0",

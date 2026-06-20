@@ -25,7 +25,11 @@ export const metadata: Metadata = {
   description:
     "面向开发者的 AI Agent 技术学习文档站（Beta），覆盖模型基础、核心概念、工程实践、框架工具、编码 Agent 和案例拆解。",
   icons: {
-    icon: siteConfig.avatar,
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: siteConfig.brand.logo, type: "image/svg+xml" },
+    ],
+    apple: siteConfig.brand.appleTouchIcon,
   },
 };
 
