@@ -111,6 +111,34 @@ Agent 生产化需要 Trace、Metrics、Logs 三层覆盖。Session 的 append-o
 | Metrics | token、延迟、工具成功率、压缩频率、成本 | p95 延迟、预算消耗 |
 | Logs | Session 事件、权限决策、错误栈 | 可审计、可回放 |
 
+## 最小数据模型
+
+落地 Harness 时，先把核心对象建清楚，比先选框架更重要：
+
+| 对象 | 必要字段 | 说明 |
+| --- | --- | --- |
+| Session | `id`、`user_id`、`status`、`created_at`、`updated_at` | 一次可恢复任务或会话 |
+| Event | `id`、`session_id`、`type`、`payload`、`created_at` | append-only 事件日志 |
+| ToolCall | `id`、`tool_name`、`input`、`risk_level`、`status` | 模型生成的外部动作意图 |
+| ToolResult | `tool_call_id`、`ok`、`output_ref`、`error` | 工具执行结果和错误语义 |
+| Checkpoint | `session_id`、`summary`、`plan`、`open_questions` | 长任务恢复所需的压缩状态 |
+| Artifact | `id`、`kind`、`uri`、`metadata` | 文档、diff、报告、截图等产物 |
+
+这些对象不要求一开始都进入数据库，但应该在代码里有稳定结构。否则后续做回放、评测、权限和多 Agent 协作时会不断补字段、改历史数据。
+
+## 落地顺序
+
+建议按风险从低到高推进：
+
+1. 先实现只读工具和 append-only Session。
+2. 加入工具 schema、输入校验和统一错误 envelope。
+3. 接入 trace，把模型调用、工具调用和成本串起来。
+4. 为写入型工具增加审批、沙箱和回滚说明。
+5. 引入 checkpoint，让长任务可以中断后恢复。
+6. 最后再做多 Agent、分布式 worker 和复杂路由。
+
+不要从“多 Agent 自治协作”开始。没有 Session、工具注册表、权限和 trace，多 Agent 只会放大不可复现的问题。
+
 ## 最小落地清单
 
 1. 先做 append-only Session，而不是只保留最后一轮消息。
