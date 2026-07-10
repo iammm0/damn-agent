@@ -49,3 +49,37 @@ description: 梳理工具使用、规划、多 Agent、记忆、MCP、Guardrails
 - 本书偏模式与概念，不替代具体框架文档。
 - 模式名称在不同项目里实现方式不同，阅读时要回到仓库结构验证。
 - 引用本站内容时，请通过页码回到 PDF 核对原文语境。
+
+## 概念映射表
+
+| 书中主题 | 站内对应 | 读完应能回答 |
+| --- | --- | --- |
+| Tool Use | [结构化输出与工具调用](/docs/model-basics/structured-output)、[工具调用与记忆](/docs/concepts/tools-and-memory) | 模型生成工具意图后，系统层还要做哪些校验和执行。 |
+| Planning | [规划、反思与任务分解](/docs/concepts/planning-and-reflection) | 长任务如何拆分、重规划和停止。 |
+| Memory | [上下文工程](/docs/practices/context-engineering) | 记忆和上下文装配有什么区别。 |
+| Multi-Agent | [多 Agent 协作](/docs/concepts/multi-agent) | 多 Agent 什么时候有价值，什么时候只是增加成本。 |
+| Guardrails | [安全、权限与人类接管](/docs/practices/safety-and-governance) | 哪些风险不能只靠 prompt 约束。 |
+
+## 学习练习
+
+读完本书后，可以用一个开源项目做反向标注：
+
+1. 找到项目里的工具定义和调用链路。
+2. 标出哪里实现了 planning 或 ReAct。
+3. 找到短期状态和长期记忆分别在哪里保存。
+4. 判断是否存在多 Agent 或角色分工。
+5. 检查 guardrails 是 prompt、代码校验、权限系统还是人工审核。
+
+这个练习能把模式语言和真实代码连接起来。
+
+## 引用清单
+
+后续写文档时优先引用这些页码：
+
+- 工具使用：pp. 49-62。
+- 规划：pp. 65-74。
+- 多 Agent：pp. 75-85。
+- 记忆：pp. 87-98。
+- MCP：pp. 109-111。
+- Guardrails：pp. 193-198。
+- 人机协同与评审：pp. 295-296。

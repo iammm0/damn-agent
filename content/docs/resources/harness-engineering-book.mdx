@@ -49,3 +49,41 @@ description: 梳理 Harness 三组件、Managed Agents、Session、Sandbox、上
 - 本书以 Claude Code 场景为例，但构件划分可迁移到其他 Agent 产品。
 - 阅读时关注「谁保存状态、谁执行副作用、谁可替换」，不要只记名词。
 - 与模式书对照阅读效果更好：模式书讲 what，本书讲 how to engineer。
+
+## 三组件心智模型
+
+| 组件 | 负责 | 不负责 |
+| --- | --- | --- |
+| Session | 事件日志、状态、检查点、恢复、审计 | 直接执行外部副作用 |
+| Harness | 编排模型调用、工具路由、上下文装配、重试 | 长期保存所有业务事实 |
+| Sandbox | 隔离执行、资源限制、命令和文件系统边界 | 决定业务目标是否完成 |
+
+这三者分开后，Agent 才能恢复、回放和水平扩展。很多 demo 失败不是模型不够强，而是状态、编排和执行混在一起。
+
+## 站内复用方式
+
+- 写 [Agent Loop](/docs/concepts/agent-loop) 时，用 Session 解释 trace 和 stop reason。
+- 写 [上下文工程](/docs/practices/context-engineering) 时，用 Harness 解释装配、压缩和缓存。
+- 写 [安全、权限与人类接管](/docs/practices/safety-and-governance) 时，用 Sandbox 解释外部副作用边界。
+- 写 [开源智能体](/docs/open-source-agents) 时，用三组件检查项目架构是否清晰。
+
+## 阅读检查题
+
+读完后至少能回答：
+
+- 为什么 append-only session log 比只保存最终状态更适合 Agent。
+- 为什么工具执行要放进 sandbox，而不是让模型直接调用系统资源。
+- 上下文压缩应该保留哪些任务状态。
+- 多 Agent 里的 Coordinator 和 Worker 如何避免冲突。
+- 生产化 Agent 为什么需要监控、权限、恢复和人工接管。
+
+## 引用清单
+
+- Agent 定义与 ReAct：pp. 8-11。
+- Sandbox 与安全：pp. 43-50。
+- Session 事件日志：pp. 51-56；pp. 80-87。
+- Harness 无状态编排：pp. 79-87。
+- 上下文与压缩：pp. 88-95。
+- 记忆：pp. 96-106。
+- 多 Agent：pp. 107-116。
+- MCP 与生产化：pp. 152-156。
