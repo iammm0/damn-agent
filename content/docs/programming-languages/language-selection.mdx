@@ -64,4 +64,55 @@ description: 按 Agent 产品、模型实验、工具服务、运行时和 AI in
 - AI infra 服务、调度控制面和高并发工具服务优先 Go。
 - 安全边界、本地 runtime、CLI、解析器和 sandbox 优先 Rust。
 
+## 选型流程
+
+可以把语言选型拆成六步：
+
+1. **确定模块边界**：它是 UI、API、RAG、worker、gateway、runtime 还是 CLI。
+2. **确定失败代价**：失败是展示错误、任务失败、数据损坏，还是安全事故。
+3. **确定运行环境**：浏览器、Node.js、容器、GPU 机器、本地桌面、移动端或边缘节点。
+4. **确定生态依赖**：是否需要特定 SDK、ML 库、解析器、队列、数据库或系统调用。
+5. **确定团队能力**：是否有人能维护构建、测试、发布和线上排障。
+6. **确定接口契约**：跨语言边界用 JSON Schema、OpenAPI、protobuf、事件流还是子进程协议。
+
+如果第 6 步答不上来，就先不要引入新语言。跨语言本身不是问题，隐式契约才是问题。
+
+## 反模式
+
+| 反模式 | 为什么危险 | 替代方案 |
+| --- | --- | --- |
+| 所有东西都写进 Python notebook | 原型快，但产品化、权限、并发和部署困难 | notebook 用于实验，服务和 UI 拆出去 |
+| Web 产品后端和评测脚本共享大量业务状态 | UI 迭代会污染实验复现 | 用数据集、API 和任务记录隔离 |
+| 过早引入 Go/Rust | 团队心智成本高，业务还没稳定 | 等边界、性能或安全需求明确后再引入 |
+| 用子进程随意串语言 | 错误语义、超时和日志难统一 | 定义输入输出 schema 和超时协议 |
+| 只按框架选语言 | 框架流行不等于系统边界适合 | 先按模块职责，再选框架 |
+
+## 示例：Coding Agent 产品
+
+一个 Coding Agent 可以这样切：
+
+- TypeScript：Web UI、任务列表、终端输出展示、人工确认、GitHub 集成页面。
+- TypeScript 或 Python：Agent 编排、工具 schema、任务状态机；取决于主框架和团队栈。
+- Python：评测集、仓库分析实验、语义检索、报告生成。
+- Go：远端 worker、队列消费、任务调度、仓库克隆服务、网关限流。
+- Rust：本地 CLI、文件搜索、diff 解析、sandbox runner、跨平台插件宿主。
+
+关键不是语言数量，而是每层是否可以独立测试、独立发布、独立回滚。
+
+## 团队协作建议
+
+- 第一阶段只要求所有协作者能读懂 TypeScript 和 Python 的核心实现。
+- Go 和 Rust 页面面向 infra 方向协作者，不要求每个内容协作者立即精通。
+- 文档示例优先给出小而完整的代码片段，不追求覆盖语言全部语法。
+- 新增跨语言模块时，同步补充 README、测试命令和错误码约定。
+- 语言页如果引用框架，优先说明“为什么这个框架适合这个边界”，不要只列工具名。
+
+## 检查清单
+
+- 是否能说清“这个模块为什么不用项目默认语言”。
+- 是否为跨语言边界定义了稳定输入输出。
+- 是否有统一的日志、trace id、错误码和超时策略。
+- 是否能在没有生产依赖的情况下跑本地测试。
+- 是否有从原型迁移到生产的退出条件，例如性能阈值、失败率、团队维护成本。
+
 参考资料：[TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)、[Node.js Learn](https://nodejs.org/learn)、[Python Tutorial](https://docs.python.org/3/tutorial/index.html)、[Go Documentation](https://go.dev/doc/)、[The Rust Programming Language](https://doc.rust-lang.org/book/)。
