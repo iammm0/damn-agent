@@ -67,3 +67,54 @@ Cursor 适合作为「编辑器即 Agent 运行时」的样本：代码库索引
 - [工具调用与记忆](/docs/concepts/tools-and-memory)：工具接口与状态边界
 - [TypeScript](/docs/programming-languages/typescript)：IDE Agent 常见技术栈
 - [Codex](/docs/coding-agents/codex)：OpenAI 在 Cursor 等 IDE 中的 Agent 扩展
+
+## IDE 内上下文
+
+Cursor 的核心不是“多一个聊天框”，而是编辑器状态本身成为上下文来源：
+
+| 上下文来源 | 用途 |
+| --- | --- |
+| 当前文件和选区 | 对局部代码解释、修改、重构。 |
+| `@` 引用 | 明确把文件、文件夹、符号或文档加入上下文。 |
+| 代码库索引 | 支撑跨文件问答和相关文件检索。 |
+| 规则文件 | 把项目约定、风格、命令和限制持久化。 |
+| 终端和 diff | 让 Agent 读取执行结果并展示可接受的改动。 |
+| MCP | 接入外部工具、文档、数据库或私有系统。 |
+
+这让 Cursor 更适合“边写边让 Agent 协助”的模式，而不是完全后台异步执行。
+
+## 典型工作流
+
+```mermaid
+flowchart LR
+  U[开发者在 IDE 中提出任务] --> C[选择上下文]
+  C --> A[Agent / Composer]
+  A --> D[生成多文件 diff]
+  D --> R[用户审查接受]
+  R --> T[终端测试]
+  T --> A
+```
+
+Cursor 的关键产品体验是把生成结果变成可预览、可接受、可拒绝的编辑器 diff，而不是只输出一段建议。
+
+## 使用边界
+
+- 适合日常开发、局部重构、代码库问答、多文件功能修改。
+- 不适合绕过 code review、CI、权限确认直接发布高风险变更。
+- 大仓库效果依赖索引、上下文选择和规则文件质量，需要团队实测。
+- IDE 产品很强，但实现不可 fork；需要可控运行时或自定义 agent 时，应对照开源项目和框架。
+
+## 团队配置建议
+
+- 在仓库中维护规则文件，写明技术栈、测试命令、代码风格、禁止事项。
+- 鼓励开发者用明确 `@` 引用控制上下文，而不是让 Agent 猜相关文件。
+- 要求大改动先生成计划，再进入多文件编辑。
+- 接受 diff 前运行本地检查，避免把 AI 改动直接混进主线。
+- 对接 MCP 时按最小权限暴露工具。
+
+## 官方来源
+
+- [Cursor Documentation](https://cursor.com/docs)
+- [Cursor Agent](https://cursor.com/docs/agent)
+- [Cursor Rules](https://cursor.com/docs/context/rules)
+- [Cursor MCP](https://cursor.com/docs/context/mcp)
