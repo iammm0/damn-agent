@@ -27,6 +27,7 @@ async function loadMaintainersSync(): Promise<MaintainersSyncResult> {
     return {
       status: "success",
       ...data,
+      syncedAt: new Date(data.syncedAt),
     };
   } catch (error) {
     return {
