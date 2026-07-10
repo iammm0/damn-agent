@@ -28,3 +28,43 @@ description: AI Agent 框架工具索引与工程选型入口。
 3. 工具权限是否需要用户确认。
 4. 是否需要把 Agent 嵌入现有产品。
 5. 团队主要使用 Python 还是 TypeScript。
+
+## 先分清框架类型
+
+Agent 框架大致可以分成三类：
+
+| 类型 | 代表 | 解决的问题 | 不解决的问题 |
+| --- | --- | --- | --- |
+| 工作流 / 状态图 | LangGraph、Mastra workflow | 多步骤、分支、循环、恢复、人工接管 | 不自动替你定义产品体验和评测标准 |
+| 多 Agent 协作 | AutoGen、CrewAI、OpenAI Agents SDK handoff | 角色分工、交接、群组讨论、任务拆解 | 不保证协作结果一定可验证 |
+| 产品集成 SDK | Vercel AI SDK、OpenAI Agents SDK | 流式输出、工具调用、结构化输出、UI / trace 集成 | 不等同于完整业务系统 |
+
+真实项目经常混用：用 Vercel AI SDK 做产品 UI，用 Mastra 或 LangGraph 做工作流，用 OpenAI Agents SDK 管 agent/tool/handoff/trace，用独立评测系统看质量。
+
+## 选框架前的最低输入
+
+不要在需求不清时先选框架。至少先写出：
+
+- 任务类型：问答、研究、代码修改、客服、运维、数据处理还是业务审批。
+- 状态形态：一次性请求、长任务、可暂停恢复、多人协作或后台队列。
+- 工具风险：只读、写入、外部副作用、生产环境、敏感数据。
+- 产品形态：聊天 UI、任务面板、后台 worker、CLI、API 服务或嵌入现有系统。
+- 验证方式：测试、引用、人工评审、轨迹回放、自动评测或业务指标。
+
+如果这些输入还没有答案，先用最少框架做原型，别急着把系统绑到复杂抽象上。
+
+## 本组页面怎么读
+
+1. 先读 [框架选型总览](/docs/frameworks/framework-selection)，确定你需要的是状态图、多 Agent、产品 SDK 还是组合。
+2. 如果需要强控制流，读 LangGraph 和 Mastra。
+3. 如果需要多角色协作，读 AutoGen、CrewAI 和 OpenAI Agents SDK 的 handoff。
+4. 如果需要在 Web 产品里做流式 UI 和工具调用展示，读 Vercel AI SDK。
+5. 最后回到 [工程实践](/docs/practices)，补齐评测、可观测性、安全和发布治理。
+
+## 反模式
+
+- 为了“支持 Agent”引入框架，但实际只有一次普通模型调用。
+- 把所有业务状态藏进框架内部，导致评测和回放拿不到关键数据。
+- 让多 Agent 互相聊天很久，却没有外部工具、证据和停止条件。
+- 框架 demo 能跑，但没有部署、权限、日志、成本和人工接管设计。
+- 选型只看 README 示例简洁度，不看失败恢复和迁移成本。
