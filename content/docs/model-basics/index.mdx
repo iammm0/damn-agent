@@ -37,4 +37,42 @@ description: 面向 Agent 工程的 LLM 基础：Transformer、Token、上下文
 - 以工程视角讲模型，不展开训练细节和数学推导。
 - 每个主题都回答三个问题：它是什么、它失败时会怎样、Agent 系统里谁该处理它。
 - 与 Agent 强相关的内容优先：上下文预算、工具调用、结构化输出、模型版本追踪。
-- 后续补充示例代码、API 对照表和常见模型族谱，但先保证目录和心智模型完整。
+- 每篇页面都保留工程检查清单，读者可以直接拿去评审自己的 Agent 方案。
+
+## 推荐学习路径
+
+如果你是第一次系统学习 Agent 工程，建议按下面顺序阅读：
+
+1. 先读 [LLM 概览](/docs/model-basics/llm-overview)，建立“模型不是 Agent”的边界感。
+2. 再读 [Token 与上下文窗口](/docs/model-basics/tokens-and-context)，理解为什么长任务会被窗口、成本和延迟约束。
+3. 然后读 [Transformer 基础](/docs/model-basics/transformer-basics)，知道注意力、位置和自回归生成怎样影响接口行为。
+4. 最后读推理参数、结构化输出和模型选型，把模型能力落到可执行、可评测、可替换的工程决策上。
+
+如果你已经在做产品或框架选型，可以反过来读：先看 [模型选型与能力边界](/docs/model-basics/model-selection)，再回到相关基础页补齐原因。
+
+## 读完后的最低标准
+
+读完本板块后，至少应该能回答这些问题：
+
+- 一个 Agent 任务失败时，问题更可能在模型能力、提示词、工具 schema、上下文装配还是编排逻辑。
+- 为什么“把全部材料塞进 prompt”不是上下文工程，反而会破坏可复现性和成本控制。
+- 什么时候应该用结构化输出、函数调用或工具调用，而不是让模型输出一段自然语言说明。
+- 模型升级、切换 provider 或改 prompt 之后，应该用哪些评测和 trace 判断是否真的变好。
+
+## 文档维护检查清单
+
+后续协作者补充模型相关页面时，建议逐项检查：
+
+- 是否把模型层、工具层、编排层、产品层的责任分开说明。
+- 是否避免把某个厂商、某个模型版本的临时能力写成长期定律。
+- 是否给出失败模式，而不只描述理想流程。
+- 是否给出可观察指标，例如 token、latency、tool success rate、schema validation error。
+- 是否保留论文、官方文档、书籍页码或本仓库资源链接，方便读者复核。
+
+## 参考资料
+
+- [Attention Is All You Need](https://arxiv.org/abs/1706.03762)：Transformer 架构的基础论文。
+- [Language Models are Few-Shot Learners](https://arxiv.org/abs/2005.14165)：大规模语言模型 few-shot 能力与局限的代表性论文。
+- [Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903)：提示中显式推理步骤对复杂推理任务的影响。
+- [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629)：把推理轨迹和行动调用交替组织的 Agent 提示范式。
+- [OpenAI Structured Outputs 文档](https://developers.openai.com/api/docs/guides/structured-outputs) 与 [Function Calling 文档](https://developers.openai.com/api/docs/guides/function-calling)：结构化输出和工具调用的工程接口参考。

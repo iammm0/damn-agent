@@ -71,12 +71,89 @@ flowchart LR
 - **循环调用**：模型反复请求同一工具，缺少停止条件。
 - **大结果反灌**：工具输出过长，挤爆上下文。
 
+## 工具调用闭环
+
+一个可维护的工具调用链路至少包含这些步骤：
+
+1. 注册工具：名称、描述、参数 schema、权限等级、是否有副作用。
+2. 装配上下文：只暴露本轮可用工具，避免工具列表过大。
+3. 模型选择工具：生成工具名和参数，而不是直接执行。
+4. 编排层校验：检查 schema、权限、速率限制、人工确认要求。
+5. 执行工具：记录输入、输出、耗时、错误码和副作用。
+6. 结果回填：把结构化 observation 放回上下文，让模型继续决策。
+7. 停止判断：达到目标、失败不可恢复或需要人工接管时结束。
+
+模型只负责第 3 步的意图生成；其余步骤都应由系统代码负责。
+
+## 工具 schema 示例
+
+```json
+{
+  "name": "read_project_file",
+  "description": "读取当前项目内的文本文件。只在需要查看源码、配置或文档原文时使用。",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "path": {
+        "type": "string",
+        "description": "相对项目根目录的文件路径，不允许绝对路径。"
+      },
+      "max_lines": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 400
+      }
+    },
+    "required": ["path"],
+    "additionalProperties": false
+  },
+  "side_effect": "read-only"
+}
+```
+
+这个 schema 的重点不是字段多，而是边界清楚：什么时候用、参数怎么约束、是否只读、超出范围怎么办。
+
+## 错误语义
+
+工具返回错误时，不要只返回一段自然语言。建议使用统一 envelope：
+
+```json
+{
+  "ok": false,
+  "error_code": "FILE_NOT_FOUND",
+  "message": "文件不存在或不在允许目录内。",
+  "retryable": false,
+  "data": null
+}
+```
+
+模型看到 `retryable: false` 时就不应继续用同样参数重试；编排层也可以用错误码做熔断、告警或人工接管。
+
+## 安全边界
+
+结构化输出不是安全机制本身。即使模型返回了合法 JSON，也要继续检查：
+
+- 工具是否允许当前用户、当前任务和当前环境调用。
+- 参数是否越权，例如绝对路径、外部 URL、生产环境标识。
+- 副作用是否需要人工确认，例如删除文件、转账、发邮件、推送代码。
+- 重试是否可能放大损失，例如重复扣费、重复写库、重复通知。
+- 工具结果是否包含敏感信息，是否允许回灌给模型或展示给用户。
+
 ## 与 MCP 的关系
 
 函数调用通常是应用和模型之间的集成；MCP 则是工具层的开放协议，让工具提供者实现一次 Server，多个 Agent 客户端复用。详见 [智能体基础](/docs/concepts/agentic-basics) 中的 MCP 章节。
+
+## 检查清单
+
+- 是否优先使用 provider 原生的 structured output 或 tool calling 能力。
+- 是否对模型返回做 JSON 解析、schema 校验和业务规则校验。
+- 是否把工具权限、副作用和人工确认写进系统层，而不是只写进 prompt。
+- 是否限制单轮最大工具调用次数，避免循环调用。
+- 是否对工具结果做截断、摘要和敏感信息过滤。
 
 ## 延伸阅读
 
 - [工具调用与记忆](/docs/concepts/tools-and-memory)：工具接口、上下文和状态边界。
 - [安全、权限与人类接管](/docs/practices/safety-and-governance)：高风险工具的审批和权限设计。
 - [Harness 工程构件](/docs/practices/harness-engineering)：工具注册表与统一执行链路。
+- [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) 与 [Function Calling](https://developers.openai.com/api/docs/guides/function-calling)：结构化输出和函数调用接口参考。
