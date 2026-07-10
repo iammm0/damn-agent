@@ -69,3 +69,33 @@ openclaw gateway --port 18789 --verbose
 - Canvas 与普通文本回复之间如何交换状态。
 - 非 main session 的 sandbox deny/allow 列表如何影响工具调用。
 - `openclaw doctor` 能检测哪些真实风险，哪些风险还需要部署侧检查。
+
+## 核心链路
+
+```mermaid
+flowchart LR
+  CH[消息渠道] --> G[Gateway]
+  G --> S[Session]
+  S --> A[Agent]
+  A --> SK[Skills]
+  A --> T[Tools]
+  A --> C[Canvas / Nodes]
+  T --> G
+  SK --> A
+```
+
+OpenClaw 的价值在于把个人助理的入口统一到 Gateway：不同消息渠道进入同一套 session、工具、技能和安全控制，而不是每个渠道单独实现 Agent。
+
+## 拆解清单
+
+- channel message 如何映射到用户、workspace 和 session。
+- 外部私信和主会话是否使用不同工具权限。
+- Gateway 暴露到公网时，pairing、allowlist 和 token 如何生效。
+- Skills 是否能声明权限、依赖、版本和更新策略。
+- Canvas / 节点能力是否会产生额外数据同步和隐私风险。
+
+## 参考资料
+
+- [OpenClaw GitHub Repository](https://github.com/openclaw/openclaw)
+- [OpenClaw Documentation](https://docs.openclaw.ai)
+- [OpenClaw Security](https://docs.openclaw.ai/gateway/security)

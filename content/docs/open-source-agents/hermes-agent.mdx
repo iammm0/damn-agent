@@ -75,3 +75,35 @@ hermes doctor
 - Gateway 如何把不同平台消息映射到统一会话。
 - Cron 任务如何保存、触发、投递和失败重试。
 - terminal backend 如何处理文件系统、Shell、容器、远程主机和 serverless 持久化。
+
+## 核心链路
+
+```mermaid
+flowchart LR
+  UI[CLI / TUI / Gateway] --> A[Hermes Agent]
+  A --> M[Memory / Profile / Context]
+  A --> SK[Skills]
+  A --> T[Tools]
+  A --> CR[Cron]
+  A --> B[Terminal Backends]
+  B --> O[观察结果]
+  O --> A
+  SK --> M
+```
+
+Hermes Agent 的学习重点是长期运行：任务经验如何沉淀成 skill 和 memory，外部消息如何进入统一 agent，cron 如何把一次性对话变成自动化任务。
+
+## 拆解清单
+
+- skill 创建是否需要人工确认和版本记录。
+- memory、profile、context file 是否有边界和过期机制。
+- gateway 消息是否会触发高风险工具。
+- cron 任务是否记录触发、失败、重试和投递结果。
+- 多 terminal backend 是否隔离文件系统、密钥和网络。
+- 轨迹数据用于训练时是否做脱敏和授权。
+
+## 参考资料
+
+- [Hermes Agent GitHub Repository](https://github.com/NousResearch/hermes-agent)
+- [Hermes Agent Documentation](https://hermes-agent.nousresearch.com/docs/)
+- [Hermes Agent Security](https://hermes-agent.nousresearch.com/docs/user-guide/security)

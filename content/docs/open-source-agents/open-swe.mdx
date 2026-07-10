@@ -39,3 +39,30 @@ Open SWE 适合学习“把 coding agent 当作团队里的异步工程成员”
 - 它如何组织子智能体、sandbox、测试和自评审。
 - PR 创建前有哪些自动验证。
 - 它如何处理失败、取消和人工接管。
+
+## 核心链路
+
+```mermaid
+flowchart LR
+  I[GitHub Issue / 外部触发] --> P[研究与计划]
+  P --> C[编码执行]
+  C --> T[测试]
+  T --> R[自评审]
+  R --> PR[创建 PR]
+  PR --> H[人类 Review]
+```
+
+Open SWE 的关键学习点是异步：用户不需要在终端里一轮轮确认，但系统必须用计划、测试、PR 和 review 保留人类控制权。
+
+## 拆解清单
+
+- issue 到计划的转换是否可见、可修改。
+- sandbox 是否隔离仓库、依赖、密钥和网络。
+- 自动测试失败后是否会重规划。
+- PR 描述是否包含计划、变更、验证和风险。
+- 何时停止、取消、转人工或重新排队。
+
+## 参考资料
+
+- [Open SWE GitHub Repository](https://github.com/langchain-ai/open-swe)
+- [Introducing Open SWE](https://www.langchain.com/blog/introducing-open-swe-an-open-source-asynchronous-coding-agent)

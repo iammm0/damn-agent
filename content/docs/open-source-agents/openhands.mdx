@@ -11,10 +11,10 @@ OpenHands 是面向软件开发任务的开源 Agent 平台。它适合被当作
 | --- | --- |
 | 最近核验 | 2026-06-13 |
 | 官方仓库 | [OpenHands/OpenHands](https://github.com/OpenHands/OpenHands) |
-| 官方站点 | [openhands.dev](https://openhands.dev/) |
+| 官方站点 | [openhands.dev](https://www.openhands.dev/) |
 | Software Agent SDK | [OpenHands/software-agent-sdk](https://github.com/OpenHands/software-agent-sdk) |
 | 分类 | 代码智能体 / 软件工程 Agent 平台 |
-| 许可证 | 待核验 |
+| 许可证 | GitHub API 返回 `NOASSERTION`，需要按仓库许可证文件继续复核 |
 
 ## 一句话定位
 
@@ -40,3 +40,35 @@ OpenHands 适合学习“可产品化的软件工程 Agent”如何组织 sandbo
 - Sandbox 如何隔离依赖安装、网络、文件系统和密钥。
 - SDK 如何把 agent、tool、workspace 和执行后端解耦。
 - Web UI 如何展示计划、执行、错误、diff 和人工确认。
+
+## 核心链路
+
+```mermaid
+flowchart LR
+  U[用户任务] --> W[Workspace / Sandbox]
+  W --> A[Agent Runtime]
+  A --> F[文件读写]
+  A --> S[Shell / 终端]
+  A --> B[Browser]
+  A --> UI[Web UI / 状态展示]
+  F --> A
+  S --> A
+  B --> A
+  A --> R[结果 / diff / 日志]
+```
+
+OpenHands 的学习重点是“软件工程动作空间”如何被统一管理：读仓库、改文件、跑命令、浏览网页和向用户解释进度都在同一个任务上下文中发生。
+
+## 拆解清单
+
+- Workspace 是否一次任务一个隔离环境，还是复用长期环境。
+- 命令执行是否有限制、超时、日志和取消机制。
+- 浏览器能力是否和文件/终端共享同一个任务状态。
+- 用户能否看到计划、当前动作、失败原因和最终 diff。
+- SDK 是否能把平台能力拆出来供其他产品复用。
+
+## 参考资料
+
+- [OpenHands GitHub Repository](https://github.com/OpenHands/OpenHands)
+- [OpenHands Website](https://www.openhands.dev/)
+- [OpenHands Software Agent SDK](https://github.com/OpenHands/software-agent-sdk)

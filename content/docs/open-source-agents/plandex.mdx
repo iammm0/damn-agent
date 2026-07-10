@@ -13,7 +13,7 @@ Plandex 是面向大型项目和真实开发任务的开源代码智能体。它
 | 官方仓库 | [plandex-ai/plandex](https://github.com/plandex-ai/plandex) |
 | 官方组织 | [plandex-ai](https://github.com/plandex-ai) |
 | 分类 | 代码智能体 / 大项目代码任务 Agent |
-| 许可证 | 待核验 |
+| 许可证 | MIT，已通过 GitHub API 核验 |
 
 ## 一句话定位
 
@@ -39,3 +39,30 @@ Plandex 适合学习“复杂任务计划 + 大上下文项目理解 + 跨文件
 - 它如何把任务拆成计划和执行步骤。
 - 它如何处理多文件 diff 和用户 review。
 - 它和 aider 的交互模型有什么差异。
+
+## 核心链路
+
+```mermaid
+flowchart LR
+  U[复杂开发目标] --> P[计划]
+  P --> C[项目上下文]
+  C --> E[执行修改]
+  E --> D[多文件 diff]
+  D --> R[用户 Review]
+  R --> P
+```
+
+Plandex 适合观察“长任务代码修改”怎样维持计划和上下文，而不是每轮都从零开始读仓库。
+
+## 拆解清单
+
+- 计划如何被创建、展示、修改和确认。
+- 项目上下文如何索引、更新和裁剪。
+- 多文件修改如何保持可 review。
+- 用户是否能暂停、回退或要求换方向。
+- 终端工作流如何和团队代码评审衔接。
+
+## 参考资料
+
+- [Plandex GitHub Repository](https://github.com/plandex-ai/plandex)
+- [Plandex GitHub Organization](https://github.com/plandex-ai)
