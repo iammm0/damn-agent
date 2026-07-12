@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { useTheme } from "next-themes";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { DiagramFrame } from "@/components/diagram-frame";
 import { CodePreview } from "@/components/code-preview";
@@ -26,10 +25,63 @@ type RenderState =
     }
   | { status: "error"; message: string };
 
+const MONOCHROME_THEME_CSS = `
+  svg {
+    background: transparent !important;
+  }
+
+  .node rect,
+  .node circle,
+  .node ellipse,
+  .node polygon,
+  .node path {
+    fill: #fff !important;
+    stroke: #111 !important;
+    stroke-width: 1.25px !important;
+  }
+
+  .edgePath .path,
+  .flowchart-link,
+  .messageLine0,
+  .messageLine1,
+  .relation,
+  .transition {
+    stroke: #111 !important;
+  }
+
+  marker path,
+  .arrowheadPath {
+    fill: #111 !important;
+    stroke: #111 !important;
+  }
+
+  .label,
+  .label text,
+  .nodeLabel,
+  .edgeLabel,
+  .edgeLabel p,
+  .messageText,
+  .actor {
+    color: #111 !important;
+    fill: #111 !important;
+  }
+
+  .edgeLabel,
+  .edgeLabel rect,
+  .labelBkg {
+    background-color: transparent !important;
+    fill: transparent !important;
+  }
+
+  .cluster rect {
+    fill: transparent !important;
+    stroke: #111 !important;
+  }
+`;
+
 export function Mermaid({ chart, title, caption, className }: MermaidProps) {
   const id = useId();
   const containerRef = useRef<HTMLDivElement>(null);
-  const { resolvedTheme } = useTheme();
   const [state, setState] = useState<RenderState>({ status: "loading" });
   const normalizedChart = chart.trim().replaceAll("\\n", "\n");
 
@@ -44,8 +96,27 @@ export function Mermaid({ chart, title, caption, className }: MermaidProps) {
           startOnLoad: false,
           securityLevel: "loose",
           fontFamily: "inherit",
-          themeCSS: "margin: 0 auto;",
-          theme: resolvedTheme === "dark" ? "dark" : "default",
+          theme: "base",
+          themeCSS: MONOCHROME_THEME_CSS,
+          themeVariables: {
+            background: "transparent",
+            mainBkg: "#ffffff",
+            secondBkg: "#ffffff",
+            tertiaryColor: "#ffffff",
+            primaryColor: "#ffffff",
+            primaryBorderColor: "#111111",
+            primaryTextColor: "#111111",
+            secondaryColor: "#ffffff",
+            secondaryBorderColor: "#111111",
+            secondaryTextColor: "#111111",
+            lineColor: "#111111",
+            textColor: "#111111",
+            labelTextColor: "#111111",
+            edgeLabelBackground: "transparent",
+            clusterBkg: "transparent",
+            clusterBorder: "#111111",
+            titleColor: "#111111",
+          },
         });
 
         const result = await mermaid.render(
@@ -76,7 +147,7 @@ export function Mermaid({ chart, title, caption, className }: MermaidProps) {
     return () => {
       cancelled = true;
     };
-  }, [id, normalizedChart, resolvedTheme]);
+  }, [id, normalizedChart]);
 
   useEffect(() => {
     if (state.status !== "success" || !containerRef.current) return;
@@ -85,7 +156,12 @@ export function Mermaid({ chart, title, caption, className }: MermaidProps) {
 
   if (state.status === "loading") {
     return (
-      <DiagramFrame title={title} caption={caption} className={className}>
+      <DiagramFrame
+        title={title}
+        caption={caption}
+        className={className}
+        variant="plain"
+      >
         <DiagramPlaceholder />
       </DiagramFrame>
     );
@@ -113,10 +189,15 @@ export function Mermaid({ chart, title, caption, className }: MermaidProps) {
   }
 
   return (
-    <DiagramFrame title={title} caption={caption} className={className}>
+    <DiagramFrame
+      title={title}
+      caption={caption}
+      className={className}
+      variant="plain"
+    >
       <div
         ref={containerRef}
-        className="mermaid-diagram flex min-h-24 items-center justify-center [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full"
+        className="mermaid-diagram flex min-h-24 items-center justify-center bg-transparent [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full [&_svg]:bg-transparent"
         dangerouslySetInnerHTML={{ __html: state.svg }}
       />
     </DiagramFrame>
