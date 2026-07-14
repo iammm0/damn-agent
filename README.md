@@ -6,7 +6,7 @@
 
 [![Beta](https://img.shields.io/badge/status-beta-orange)](https://damnagent.org)
 [![Website](https://img.shields.io/badge/website-damnagent.org-0f766e)](https://damnagent.org)
-[![License](https://img.shields.io/badge/license-pending-lightgrey)](#许可说明)
+[![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
 Damn Agent 是一个中文 AI Agent 工程学习文档站，面向希望系统理解、构建和评估智能体系统的读者。它不把 Agent 当成一个模糊概念或框架宣传词，而是拆成模型基础、Agent Loop、工具调用、记忆与上下文、评测、安全、框架选型、编码 Agent 和真实案例等可学习、可复核、可落地的工程知识。
 
@@ -109,20 +109,6 @@ Damn Agent 仍处在 Beta 阶段，欢迎补充更清晰的定义、更可复核
 
 协作者信息见：[维护者](https://damnagent.org/docs/maintainers)。
 
-## 相关项目
-
-这些项目与 Damn Agent 的学习主题有关，但不是阅读本站的前置条件：
-
-| 项目 | 说明 |
-| --- | --- |
-| [secbot](https://github.com/iammm0/secbot) | 面向授权安全测试场景的 Agent 工作台和终端产品。 |
-| [execgo](https://github.com/iammm0/execgo) | 面向工具执行层、运行时和可观测性的工程项目。 |
-
-项目站点：
-
-- [secbot.site](https://secbot.site)
-- [execgo.site](https://execgo.site)
-
 ## 许可说明
 
-当前仓库尚未选择开源许可证。在正式添加许可证文件前，所有权利由仓库所有者保留。
+本项目使用 [MIT License](./LICENSE)。
