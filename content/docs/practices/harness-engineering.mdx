@@ -111,6 +111,12 @@ Agent 生产化需要 Trace、Metrics、Logs 三层覆盖。Session 的 append-o
 | Metrics | token、延迟、工具成功率、压缩频率、成本 | p95 延迟、预算消耗 |
 | Logs | Session 事件、权限决策、错误栈 | 可审计、可回放 |
 
+## 开源对照：DeepSeek Harness
+
+2026-08-13，DeepSeek 开源了 [DeepSeek Harness](/docs/open-source-agents/deepseek-harness)（`dsh`）。它把模型、工具、技能、session、sandbox、loop、调度和 UI 都做成可替换插件，口号是 Everything is a Plugin。这和上面的 Session / Harness / Sandbox 三分法直接对应：你可以对照阅读，看同一套构件如何被拆成 Cordis 插件，而不是只停留在 Claude Code 的产品实现里。来源：[DeepSeek Harness README](https://github.com/deepseek-ai/deepseek-harness)；[官方预览页](https://www.deepseek.com/harness/en/)。
+
+当前仍是 developer preview，官方明确会有破坏性变更。适合学架构，不适合当作稳定生产运行时。
+
 ## 最小落地清单
 
 1. 先做 append-only Session，而不是只保留最后一轮消息。
@@ -126,3 +132,4 @@ Agent 生产化需要 Trace、Metrics、Logs 三层覆盖。Session 的 append-o
 - [下载《Claude Code Harness Engineering：从入门到实战》](/resources/books/harness-engineering-book.pdf)
 - [下载《Demystifying Claude Code v1.8》](/resources/books/demystifying-claude-code-v1.8.pdf)
 - [下载《智能体设计模式》](/resources/books/agentic-design-patterns-chinese.pdf)
+- [DeepSeek Harness](/docs/open-source-agents/deepseek-harness)：开源插件化 harness 对照。

@@ -7,10 +7,14 @@
     "aider",
     "open-swe",
     "plandex",
+    "opencode",
+    "cline",
+    "deepseek-harness",
     "gpt-researcher",
     "browser-use",
     "open-interpreter",
     "openclaw",
-    "hermes-agent"
+    "hermes-agent",
+    "nanobot"
   ]
 }
