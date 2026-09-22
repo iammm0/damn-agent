@@ -4,7 +4,6 @@
 
 # Damn Agent
 
-[![Beta](https://img.shields.io/badge/status-beta-orange)](https://damnagent.org)
 [![Website](https://img.shields.io/badge/website-damnagent.org-0f766e)](https://damnagent.org)
 [![License](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 
@@ -12,7 +11,7 @@ Damn Agent 是一个中文 AI Agent 工程学习文档站，面向希望系统�
 
 访问站点：[damnagent.org](https://damnagent.org)
 
-当前版本：**Beta 0.2.0**。内容目录和正文仍在持续完善，部分页面会继续扩写、校对和补充引用。
+当前版本：**0.2.0**。
 
 ## 适合谁阅读
 
@@ -98,7 +97,7 @@ Agent 不是“让模型多想一会儿”这么简单。一个可维护的 Agen
 
 ## 参与共建
 
-Damn Agent 仍处在 Beta 阶段，欢迎补充更清晰的定义、更可复核的资料来源、更贴近工程实践的案例，以及对现有页面的勘误建议。
+欢迎补充更清晰的定义、更可复核的资料来源、更贴近工程实践的案例，以及对现有页面的勘误建议。
 
 内容贡献优先关注：
 

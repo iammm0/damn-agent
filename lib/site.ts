@@ -1,8 +1,8 @@
 export const siteConfig = {
   name: "Damn Agent",
   cnName: "智能体工程文档",
-  version: "0.2.0-beta",
-  versionLabel: "Beta",
+  version: "0.2.0",
+  versionLabel: "",
   brand: {
     logo: "/brand/damn-agent-logo.svg",
     icon: "/brand/damn-agent-icon.ico",
@@ -19,5 +19,5 @@ export const siteConfig = {
     repo: "damn-agent",
   },
   description:
-    "面向开发者的 AI Agent 技术学习文档站（Beta），系统梳理概念、工程实践、框架工具、编码 Agent 和案例拆解。",
+    "面向开发者的 AI Agent 技术学习文档站，系统梳理概念、工程实践、框架工具、编码 Agent 和案例拆解。",
 };
