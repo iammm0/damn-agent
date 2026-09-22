@@ -80,6 +80,16 @@ Agent 事故处理至少包括：
 
 事故复盘不要只写“模型不稳定”。要定位是哪条防线没有发挥作用。
 
+## 2026 年的治理背景
+
+Agent 一旦能发邮件、推代码、发包或调用生产 API，事故就不再只是对话失败。2026-09-15，OpenAI 公开确认正在与 Anthropic、Google 讨论安全协作，背景包括 Hassabis 7 月提出的行业 Standards Body，以及 Amodei 9 月 12 日呼吁放缓前沿能力节奏的文章。对工程团队的含义不是等待实验室联盟，而是：外部副作用工具必须有审批、审计和回滚；依赖包、技能市场、MCP server 都属于供应链，不能默认信任社区插件。来源：[CNBC，2026-09-15](https://www.cnbc.com/2026/09/15/open-ai-google-anthropic-safety.html)。
+
+写入治理清单时至少补三问：
+
+1. 这个 Agent 能否向包仓库、代码托管或消息渠道产生不可逆写入。
+2. 技能、MCP、第三方工具的来源、权限和更新通道是否可审计。
+3. 出事之后能否在分钟级冻结工具，而不是只关掉聊天窗口。
+
 ## 高风险工具检查清单
 
 - 是否有明确的风险等级和权限声明。
@@ -94,5 +104,6 @@ Agent 事故处理至少包括：
 
 - [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/)：生成式 AI 应用风险分类。
 - [LLM01:2025 Prompt Injection](https://genai.owasp.org/llmrisk/llm01-prompt-injection/)：Prompt Injection 风险说明。
+- [CNBC: OpenAI, Google, Anthropic discussing collaboration on AI safety](https://www.cnbc.com/2026/09/15/open-ai-google-anthropic-safety.html)：2026-09-15 实验室安全协调报道。
 - [可观测性与轨迹回放](/docs/practices/observability)：安全审计和事故复盘依赖 trace。
 - [结构化输出与工具调用](/docs/model-basics/structured-output)：工具调用前后的校验边界。

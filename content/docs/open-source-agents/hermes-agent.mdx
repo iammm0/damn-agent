@@ -9,8 +9,10 @@ Hermes Agent 是 Nous Research 开源的通用 Agent 项目。它的学习价值
 
 | 字段 | 信息 |
 | --- | --- |
-| 最近核验 | 2026-06-13 |
+| 最近核验 | 2026-09-22 |
+| GitHub 快照 | 约 248k stars（[NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent)） |
 | 官方仓库 | [NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) |
+| 自进化扩展 | [NousResearch/hermes-agent-self-evolution](https://github.com/NousResearch/hermes-agent-self-evolution) |
 | 官方站点 | [hermes-agent.nousresearch.com](https://hermes-agent.nousresearch.com) |
 | 官方文档 | [hermes-agent.nousresearch.com/docs](https://hermes-agent.nousresearch.com/docs/) |
 | Quickstart | [getting-started/quickstart](https://hermes-agent.nousresearch.com/docs/getting-started/quickstart) |
@@ -24,17 +26,18 @@ Hermes Agent 适合被当成“长期个人 Agent 如何积累技能和记忆”
 
 ## 值得学习的工程点
 
-- 自改进循环：README 描述了从复杂任务中创建技能、在使用中改进技能、主动提示持久化知识、搜索历史会话等能力。
-- 技能和记忆：项目把 procedural memory、skills hub、context files、memory 和 user profile 当成一等能力，适合研究“经验如何从一次任务沉淀为可复用能力”。
-- 消息网关：支持 Telegram、Discord、Slack、WhatsApp、Signal、Email 等入口，让同一个 Agent 不只运行在本地终端。
-- 多运行后端：README 提到 local、Docker、SSH、Singularity、Modal、Daytona 等 terminal backend，适合观察任务执行环境如何抽象。
-- 自动化调度：内置 cron scheduler，可把自然语言任务变成定时执行和平台投递。
-- 子智能体与并行：支持隔离 subagent 和 RPC 风格工具调用，适合拆解长任务并行和上下文成本控制。
-- 研究数据：项目包含 batch trajectory generation 和 trajectory compression，用于训练下一代工具调用模型。
+- 自改进循环：从复杂任务创建技能、在使用中改进技能、主动提示持久化知识、搜索历史会话。
+- 技能和记忆：procedural memory、skills hub、context files、memory 和 user profile 是一等能力；技能声明兼容 [agentskills.io](https://agentskills.io)。
+- OpenClaw 迁移：`hermes claw migrate` 可导入 SOUL.md、记忆、技能、allowlist、消息配置和 API key。
+- 消息网关：Telegram、Discord、Slack、WhatsApp、Signal、Email 等入口共用一个 gateway 进程。
+- 多运行后端：local、Docker、SSH、Singularity、Modal、Daytona、Vercel Sandbox；后两者强调空闲休眠。
+- 自动化调度：内置 cron，可把自然语言任务变成定时执行和平台投递。
+- 子智能体与并行：隔离 subagent，以及用 Python RPC 把多步工具调用压成低上下文成本回合。
+- 研究数据：batch trajectory generation 和 trajectory compression；另有独立仓库做 DSPy + GEPA 自进化实验。
 
 ## 仓库结构观察
 
-2026-06-13 核验时，仓库顶层能看到 `agent`、`gateway`、`tools`、`skills`、`cron`、`providers`、`hermes_cli`、`tui_gateway`、`tests`、`docs`、`website`、`optional-mcps`、`optional-skills`、`trajectory_compressor.py`、`batch_runner.py` 等目录和文件。它同时覆盖运行时、CLI、网关、工具、技能、调度、文档和研究数据链路。
+2026-09-22 核验时，仓库顶层仍覆盖 `agent`、`gateway`、`tools`、`skills`、`cron`、`providers`、`hermes_cli`、`tui_gateway`，并新增 `apps`、`plugins`、`plugin-catalog`、`acp_adapter`、`evals`、`web`、`AGENTS.md`。它同时覆盖运行时、CLI、网关、工具、技能、调度、文档和研究数据链路。
 
 ## 最小运行路径
 
@@ -55,9 +58,10 @@ hermes tools
 hermes gateway
 hermes setup
 hermes doctor
+hermes claw migrate --dry-run
 ```
 
-继续深拆前，建议至少跑通 CLI 对话、模型选择、工具配置、gateway setup、一次 cron 示例和 `hermes doctor`。
+若从 OpenClaw 迁来，先 dry-run 再决定是否导入密钥。继续深拆前，建议至少跑通 CLI 对话、模型选择、工具配置、gateway setup、一次 cron 示例和 `hermes doctor`。
 
 ## 不适合直接照搬的地方
 
@@ -66,6 +70,7 @@ hermes doctor
 - 多运行后端会扩大调试和权限面，不能只看 CLI 成功路径。
 - 技能自创建如果缺少评审，可能把临时 workaround 固化为长期行为。
 - 轨迹数据用于训练时，需要单独处理敏感数据、许可证、用户授权和可复现性。
+- 社区里常把 OpenClaw 和 Hermes 绑成“双栈”。这是运维组合，不是官方单一产品；先分清渠道广度 vs 自进化深度，再决定是否同时跑两套系统。
 
 ## 后续深拆问题
 
@@ -105,5 +110,8 @@ Hermes Agent 的学习重点是长期运行：任务经验如何沉淀成 skill 
 ## 参考资料
 
 - [Hermes Agent GitHub Repository](https://github.com/NousResearch/hermes-agent)
+- [Hermes Agent self-evolution](https://github.com/NousResearch/hermes-agent-self-evolution)
 - [Hermes Agent Documentation](https://hermes-agent.nousresearch.com/docs/)
 - [Hermes Agent Security](https://hermes-agent.nousresearch.com/docs/user-guide/security)
+- [Agent Skills](https://agentskills.io)
+- [OpenClaw](/docs/open-source-agents/openclaw)

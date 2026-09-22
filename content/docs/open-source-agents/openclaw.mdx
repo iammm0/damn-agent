@@ -9,13 +9,16 @@ OpenClaw 是一个本地优先的个人 AI 助理项目，核心看点不是单�
 
 | 字段 | 信息 |
 | --- | --- |
-| 最近核验 | 2026-06-13 |
+| 最近核验 | 2026-09-22 |
+| GitHub 快照 | 约 390k stars（[openclaw/openclaw](https://github.com/openclaw/openclaw)） |
 | 官方仓库 | [openclaw/openclaw](https://github.com/openclaw/openclaw) |
 | 官方站点 | [openclaw.ai](https://openclaw.ai) |
 | 官方文档 | [docs.openclaw.ai](https://docs.openclaw.ai) |
 | Getting Started | [docs.openclaw.ai/start/getting-started](https://docs.openclaw.ai/start/getting-started) |
+| 技能目录 | [ClawHub](https://clawhub.ai) |
 | Security | [docs.openclaw.ai/gateway/security](https://docs.openclaw.ai/gateway/security) |
-| 许可证 | MIT，已核验仓库 `LICENSE` 文件 |
+| 治理 | [OpenClaw Foundation](https://openclaw.org)（独立 501(c)(3)） |
+| 许可证 | MIT，已核验仓库 `LICENSE`（Copyright 2026 OpenClaw Foundation） |
 | 分类 | 通用任务智能体 / 个人助理 / 多渠道 Gateway |
 
 ## 一句话定位
@@ -25,24 +28,33 @@ OpenClaw 适合被当成“个人助理产品化样本”来学习：它关心�
 ## 值得学习的工程点
 
 - Gateway 作为控制面：统一承载 sessions、channels、tools 和 events，避免每个渠道各自实现一套 Agent 流程。
-- 多渠道入口：README 中列出 WhatsApp、Telegram、Slack、Discord、Google Chat、Signal、iMessage、Teams、Matrix、飞书、微信、QQ 等入口，适合观察“同一 Agent 如何面对不同消息平台”。
-- Onboarding 和 doctor：推荐通过 `openclaw onboard` 配置 gateway、workspace、channels 和 skills，说明项目把安装体验作为工程能力的一部分。
-- DM 安全默认值：官方安全说明强调把外部私信视为不可信输入，并通过 pairing、allowlist 和 `openclaw doctor` 降低误暴露风险。
-- Sandbox 边界：项目区分 main session 和非 main session 的工具权限，适合学习“个人主会话”和“外部渠道会话”权限不一致时如何建模。
-- Live Canvas 和节点：Canvas、桌面伴随应用、移动节点让 Agent 不只停留在文本聊天，也能进入可视化工作区和设备侧能力。
+- 多渠道入口：README 中列出 Discord、iMessage、Slack、Teams、Telegram、WhatsApp 等 20+ 渠道，以及 macOS、iOS、Android、Windows、Linux 原生应用。
+- 技能发行网络：官方把新能力优先放到 [plugin SDK](https://docs.openclaw.ai/plugins/building-plugins) 和 [ClawHub](https://clawhub.ai)，适合观察“助理产品如何把扩展从核心仓库拆出去”。
+- Harness 可替换：README 把 Claude、Codex、本地模型描述为可替换插件，Gateway 本身不绑定单一模型厂商。
+- Onboarding 和 doctor：`openclaw onboard --install-daemon` 配置 gateway、workspace、channels 和 skills；`openclaw dashboard` 打开 Control UI。
+- DM 安全默认值：把外部私信视为不可信输入，未知发送者默认 pairing，用 `openclaw pairing approve` 放行。
+- Sandbox 边界：主会话工具默认跑在 host 上，除非显式配置 sandbox；远程暴露 Gateway 前必须读 security / exposure runbook。
+- Live Canvas 和节点：Companion apps 增加 voice、Canvas、camera、screen 和设备侧动作。
 
 ## 仓库结构观察
 
-2026-06-13 核验时，仓库顶层能看到 `apps`、`packages`、`src`、`skills`、`ui`、`docs`、`deploy`、`security`、`qa`、`test`、`Dockerfile`、`docker-compose.yml` 等目录和文件。它不是单文件 demo，而是包含应用、包、文档、部署、安全、测试和技能体系的产品型仓库。
+2026-09-22 核验时，仓库顶层能看到 `apps`、`packages`、`src`、`skills`、`ui`、`docs`、`deploy`、`security`、`qa`、`test`、`crates`、`extensions`、`AGENTS.md`、`Dockerfile`、`docker-compose.yml` 等。它仍是产品型仓库，并已把技能/插件和原生运行时继续拆分。
 
 ## 最小运行路径
 
-官方 README 推荐 Node 24，或 Node 22.19+。新用户路径以 CLI onboarding 为主：
+官方推荐安装脚本（会按需安装受支持的 Node.js）。已自行管理 Node 时，要求 Node 24.16+ 或 26.1+，推荐 Node 26：
 
 ```bash
-npm install -g openclaw@latest
+curl -fsSL https://openclaw.ai/install.sh | bash
+```
+
+或：
+
+```bash
+npm install -g openclaw@latest --allow-scripts=openclaw
 openclaw onboard --install-daemon
 openclaw gateway status
+openclaw dashboard
 ```
 
 调试前台 Gateway 时可参考：
@@ -60,6 +72,7 @@ openclaw gateway --port 18789 --verbose
 - “外部用户发消息触发工具调用”是高风险场景，必须先理解 pairing、allowlist、sandbox 和 gateway exposure runbook。
 - OpenClaw 的价值来自 Gateway、节点、渠道、技能和配置体系的组合，拆其中一个模块时不能脱离整体权限模型。
 - 二次分发时除 MIT 许可证外，还需要核对 `THIRD_PARTY_NOTICES.md`。
+- PicoClaw、NanoClaw、ZeroClaw 等社区分叉大多是发行形态或硬件套件，学习价值应回到 Gateway、权限和技能模型，不要把每个分叉当成独立产品页。
 
 ## 后续深拆问题
 
@@ -99,3 +112,7 @@ OpenClaw 的价值在于把个人助理的入口统一到 Gateway：不同消息
 - [OpenClaw GitHub Repository](https://github.com/openclaw/openclaw)
 - [OpenClaw Documentation](https://docs.openclaw.ai)
 - [OpenClaw Security](https://docs.openclaw.ai/gateway/security)
+- [ClawHub](https://clawhub.ai)
+- [OpenClaw Foundation](https://openclaw.org)
+- [Hermes Agent](/docs/open-source-agents/hermes-agent)：自进化对照；官方提供 `hermes claw migrate`
+- [nanobot](/docs/open-source-agents/nanobot)：轻量自托管对照

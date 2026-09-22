@@ -633,7 +633,7 @@ class ReliableHandoff:
 
 ### A2A 协议：Agent 间通信的标准化
 
-A2A（Agent-to-Agent）是 Google 于 2025 年 4 月发布的开放协议，旨在让不同厂商、不同框架构建的 AI Agent 之间实现标准化通信与协作。2025 年 6 月由 Google 捐赠给 Linux Foundation 托管，AWS、Cisco、Microsoft、Salesforce、SAP 等作为创始成员参与。协议基于 HTTP + JSON-RPC 2.0 + SSE 构建，核心概念包括 Agent Card（服务发现）、Task（任务生命周期管理）、Message 和 Artifact（交互载体）。来源：[Google A2A Protocol](https://google.github.io/A2A/)。
+A2A（Agent-to-Agent）是 Google 于 2025 年 4 月发布的开放协议，用于让不同厂商、不同框架构建的 Agent 互相发现、委托任务和交换结果。Google 随后把它捐赠给 Linux Foundation。2026-08-17，A2A 转入 Linux Foundation 下的 Agentic AI Foundation（AAIF）托管，与 MCP、AGENTS.md 等项目并列，但**规范并不合并**：MCP 管 Agent→工具，A2A 管 Agent→Agent。协议基于 HTTP + JSON-RPC 2.0 + SSE，核心概念包括 Agent Card、Task、Message 和 Artifact。来源：[A2A Protocol](https://a2a-protocol.org/latest/)；[Linux Foundation AAIF 公告](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation)；[Forbes：A2A joins AAIF](https://www.forbes.com/sites/janakirammsv/2026/08/19/agent2agent-joins-the-agentic-ai-foundation-alongside-mcp/)。
 
 A2A 与 MCP 的定位差异：MCP 解决的是 Agent 与 Tool 之间的纵向能力扩展（"Agent 如何调用工具"），A2A 解决的是 Agent 与 Agent 之间的横向协作（"Agent 如何委托另一个 Agent"）。两者定位互补——一个 Agent 可以同时用 MCP 连接工具、用 A2A 与其他 Agent 协作。来源：《智能体设计模式》，pp. 109-111。
 
@@ -646,7 +646,7 @@ A2A 协议仍在快速迭代，需注意版本差异：
 | v0.2.0 | 核心方法名从 `tasks/send` / `tasks/sendSubscribe` 重命名为 `message/send` / `message/stream` | API 调用需更新 |
 | v0.3.0 | 新增 gRPC binding 与 Agent Card signing 支持 | 性能和安全性提升 |
 
-来源：[Google A2A Protocol](https://google.github.io/A2A/)。
+来源：[A2A Protocol](https://a2a-protocol.org/latest/)。
 
 ### A2A 交互代码示例
 
@@ -1664,7 +1664,7 @@ AutoGen 体系目前是三个不同项目，常被混淆：
 
 除了上述框架，值得关注的还有：
 
-- **Google ADK**：SequentialAgent、ParallelAgent、LoopAgent 内置编排，深度集成 Google 生态。来源：[Google ADK Documentation](https://google.github.io/adk-docs/)。
+- **Google ADK**：代码优先的 Agent / Workflow runtime，支持 HITL、Task API 和 A2A；详见 [Google ADK](/docs/frameworks/google-adk)。来源：[ADK Documentation](https://google.github.io/adk-docs/)。
 - **OpenAI Agents SDK**：轻量级 Handoff 机制，代码优先编排。来源：[OpenAI Agents SDK Documentation](https://openai.github.io/openai-agents-python/)。
 - **AWS Agent Squad**：Agent-as-Tools 架构，Lead Agent 协调团队。来源：[Agent Squad](https://github.com/2FastLabs/agent-squad)。
 
@@ -1799,7 +1799,8 @@ LLM Agent 在多轮辩论中倾向于迎合对方观点而非坚持正确判断�
 | LangGraph State Management | https://langchain-ai.github.io/langgraph/concepts/low_level/ | 共享状态图、Checkpointing、Human-in-the-Loop |
 | OpenAI Agents SDK: Handoffs | https://openai.github.io/openai-agents-python/handoffs/ | Tool-based Handoff 模式、input_filter |
 | CrewAI Documentation | https://docs.crewai.com/ | Agent + Task + Crew 抽象 |
-| Google A2A Protocol | https://google.github.io/A2A/ | Agent 间通信标准化协议 |
+| Google A2A Protocol | https://a2a-protocol.org/latest/ | Agent 间通信标准化协议（AAIF 托管） |
+| Agentic AI Foundation | https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation | MCP、AGENTS.md、A2A 的中立托管 |
 | MCP Specification | https://modelcontextprotocol.io/ | Agent 与 Tool 的纵向连接协议 |
 | OpenTelemetry AI Agent Observability | https://opentelemetry.io/blog/2025/ai-agent-observability/ | LLM 可观测性的标准化方向 |
 

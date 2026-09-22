@@ -26,7 +26,7 @@ Claude Code 适合作为「终端优先的编码 Agent 产品」样本：它不�
 - **专用文件工具**：Read、Write、Edit、Grep 等，与 Bash 分工明确。
 - **子 Agent**：主 Agent 可派发隔离上下文的子任务执行者。
 - **扩展**：Hook 注入业务逻辑，MCP 接入外部工具和服务。
-- **项目记忆**：通过 `CLAUDE.md` 等约定文件注入仓库级上下文。
+- **项目记忆**：通过 `CLAUDE.md` 注入 Claude 专用约定；2.1.277 起，若仓库没有 `CLAUDE.md`，可回退读取跨工具标准文件 `AGENTS.md`。
 
 ## 值得关注的工程点
 
@@ -80,7 +80,7 @@ Claude Code 的学习价值在于终端 Agent 如何把工具能力做成受控�
 | Bash | 命令确认、超时、输出截断、危险命令识别。 |
 | MCP | 外部工具和数据源如何被接入、授权和展示。 |
 | Hooks | 团队如何在工具调用前后插入校验、格式化或审计。 |
-| 项目记忆 | `CLAUDE.md` 等规则文件如何影响仓库级行为。 |
+| 项目记忆 | `CLAUDE.md` 仍是 Claude 专用规则；`AGENTS.md` 是 AAIF 托管的跨工具约定，默认在没有 `CLAUDE.md` 时作为回退。 |
 
 如果只关注模型回答质量，会漏掉 Claude Code 真正重要的部分：工具调用被放进了可审计、可扩展、可中断的终端工作流。
 
@@ -102,7 +102,7 @@ flowchart LR
 
 - 适合本地仓库探索、跨文件修改、测试驱动修复、重构和文档维护。
 - 不适合无审计地执行生产命令、处理真实密钥或自动发布高风险变更。
-- 团队使用时应把项目规则、命令白名单、格式化和测试要求写进仓库约定。
+- 团队使用时应把项目规则写进 `AGENTS.md`（跨工具）或 `CLAUDE.md`（Claude 专用），并明确命令白名单、格式化和测试要求。
 - MCP 和 Hook 增强能力的同时也扩大攻击面，需要按最小权限配置。
 
 ## 官方来源
@@ -111,3 +111,4 @@ flowchart LR
 - [Claude Code MCP](https://docs.anthropic.com/en/docs/claude-code/mcp)
 - [Claude Code Hooks](https://docs.anthropic.com/en/docs/claude-code/hooks)
 - [Claude Code Settings](https://docs.anthropic.com/en/docs/claude-code/settings)
+- [AGENTS.md](https://agents.md/)：跨工具项目指令，现由 Linux Foundation AAIF 托管。

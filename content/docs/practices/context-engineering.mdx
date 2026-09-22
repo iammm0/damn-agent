@@ -99,6 +99,12 @@ description: 上下文工程关注如何组织任务信息，让模型在有限�
 - 模型能知道哪些信息是事实、哪些只是计划或假设。
 - 人类能从上下文回到原始证据。
 
+## 仓库级约定：AGENTS.md
+
+给人类看的是 README，给编码 Agent 看的是 `AGENTS.md`。它是标准 Markdown，没有强制字段，用来写构建命令、测试方式、代码风格和安全约束。2025 年底起由 Linux Foundation 的 Agentic AI Foundation 托管，Codex、Cursor、Aider、OpenCode、Gemini CLI 等会读取；Claude Code 2.1.277 起可在没有 `CLAUDE.md` 时回退读取。最近的 `AGENTS.md` 覆盖当前目录，用户对话指令优先于文件。来源：[AGENTS.md](https://agents.md/)。
+
+不要同时维护三份几乎相同的 `CLAUDE.md`、`.cursor/rules` 和 `AGENTS.md` 却从不核对。混用多种工具时，仓库根目录保留一份 `AGENTS.md`，工具专用文件只写该工具真正用得到的扩展语法。
+
 ## 延伸阅读
 
 - [Token 与上下文窗口](/docs/model-basics/tokens-and-context)：上下文预算和压缩策略。
@@ -110,3 +116,4 @@ description: 上下文工程关注如何组织任务信息，让模型在有限�
 - [Claude Code Harness Engineering](/docs/resources/harness-engineering-book)：pp. 88-106，上下文压缩、缓存和记忆提取。
 - [Demystifying Claude Code v1.8](/docs/resources/demystifying-claude-code)：pp. 154-180，上下文优化和性能设计。
 - [Anthropic: Building Effective Agents](https://www.anthropic.com/engineering/building-effective-agents)：从 workflow 到 agentic system 的上下文和复杂度取舍。
+- [AGENTS.md](https://agents.md/)：跨工具项目指令格式。

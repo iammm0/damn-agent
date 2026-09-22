@@ -91,7 +91,7 @@ flowchart LR
 
 ## 工程关注点
 
-- 本地和云端是否使用同一套项目规则，例如 `AGENTS.md`。
+- 本地和云端是否使用同一套项目规则。`AGENTS.md` 是 AAIF 托管的跨工具约定，Codex CLI 会默认读取；不要把它写成 Codex 私有格式。
 - 云端环境如何获得依赖、测试命令、密钥和仓库权限。
 - 任务状态如何通知用户：排队、执行中、需要输入、失败、完成。
 - 结果如何回到团队协作对象：diff、commit、PR、评论、检查结果。
@@ -109,3 +109,5 @@ flowchart LR
 - [Codex Documentation](https://developers.openai.com/codex/)
 - [Codex CLI Documentation](https://developers.openai.com/codex/cli)
 - [Codex Cloud Tasks Documentation](https://developers.openai.com/codex/cloud)
+- [AGENTS.md](https://agents.md/)
+- [openai/codex](https://github.com/openai/codex)：开源 Rust CLI 对照
