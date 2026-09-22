@@ -9,8 +9,8 @@ description: 主流编码 Agent 产品介绍：Claude Code、Codex、Cursor 等�
 
 | 板块 | 关注点 |
 | --- | --- |
-| [编码 Agent](/docs/coding-agents) | 商业/产品级编码 Agent：Claude Code、Codex、Cursor 等 |
-| [开源智能体](/docs/open-source-agents) | 社区开源项目：OpenHands、aider、SWE-agent 等可读仓库 |
+| [编码 Agent](/docs/coding-agents) | 厂商编码 Agent：Claude Code、Codex、Cursor、Gemini CLI、Qwen Code |
+| [开源智能体](/docs/open-source-agents) | 社区开源项目：OpenHands、OpenCode、Cline、OpenClaw 等可读仓库 |
 | [案例拆解](/docs/cases) | 通用场景分析与源码深读，如 [Claude Code 源码解析](/docs/cases/claude-code-source-analysis) |
 | [框架工具](/docs/frameworks) | LangGraph、Mastra 等编排框架与 SDK |
 
@@ -21,6 +21,8 @@ description: 主流编码 Agent 产品介绍：Claude Code、Codex、Cursor 等�
 | [Claude Code](/docs/coding-agents/claude-code) | Anthropic 终端编码 Agent，强调工具系统、Harness 架构和 MCP 扩展。 |
 | [Codex](/docs/coding-agents/codex) | OpenAI 编码 Agent，覆盖 CLI、IDE 扩展和云端异步任务执行。 |
 | [Cursor](/docs/coding-agents/cursor) | AI 原生 IDE，把 Agent、Composer 和代码库上下文嵌进编辑体验。 |
+| [Gemini CLI](/docs/coding-agents/gemini-cli) | Google 官方开源终端 Agent；额度取决于认证路径，项目约定默认是 `GEMINI.md`。 |
+| [Qwen Code](/docs/coding-agents/qwen-code) | 通义开源编码 Agent；源于 Gemini CLI v0.8.2，自 v0.1 起独立演进。 |
 
 ## 阅读这些产品时看什么
 
@@ -40,7 +42,7 @@ description: 主流编码 Agent 产品介绍：Claude Code、Codex、Cursor 等�
 
 | 形态 | 代表 | 强项 | 风险 |
 | --- | --- | --- | --- |
-| 终端 Agent | Claude Code、Codex CLI | 贴近 git、shell、测试和本地仓库 | Shell 权限、误操作、输出过长 |
+| 终端 Agent | Claude Code、Codex CLI、Gemini CLI、Qwen Code | 贴近 git、shell、测试和本地仓库 | Shell 权限、误操作、输出过长 |
 | IDE Agent | Cursor、Codex IDE 扩展 | 上下文来自编辑器、diff 和打开文件 | 容易把自动改动混入手写改动 |
 | 云端 Agent | Codex cloud、Open SWE 类产品 | 长任务 offload、异步执行、PR 工作流 | 代码访问、密钥、沙箱和审计 |
 | 产品内 Agent | 内部工具、客服后台、业务平台 | 与业务状态和权限深度集成 | 需要自建治理、评测和回放 |
@@ -52,7 +54,7 @@ description: 主流编码 Agent 产品介绍：Claude Code、Codex、Cursor 等�
 - 它是在本地执行、IDE 执行还是云端执行。
 - 它能不能明确展示每一步读了什么、改了什么、跑了什么。
 - 它如何处理用户已有未提交改动。
-- 它是否支持项目级规则、记忆、MCP 或外部工具。
+- 它是否支持项目级规则（`AGENTS.md` / `CLAUDE.md` / `GEMINI.md`）、记忆、MCP 或外部工具。
 - 它如何让用户确认高风险命令、文件覆盖、推送和 PR。
 - 它的输出能否落到测试、diff、commit、PR 和 review 链路里。
 
@@ -61,11 +63,15 @@ description: 主流编码 Agent 产品介绍：Claude Code、Codex、Cursor 等�
 1. 先读 [Claude Code](/docs/coding-agents/claude-code)，理解终端 Agent 和工具权限。
 2. 再读 [Cursor](/docs/coding-agents/cursor)，理解 IDE 内上下文、规则和 diff 体验。
 3. 再读 [Codex](/docs/coding-agents/codex)，理解 CLI、IDE、云端任务的多入口形态。
-4. 最后对照 [Coding Agent 工程案例](/docs/cases/coding-agent)，把产品体验拆回通用工作流。
+4. 对照 [Gemini CLI](/docs/coding-agents/gemini-cli) 和 [Qwen Code](/docs/coding-agents/qwen-code)，看官方开源 CLI 的认证、约定文件和分叉关系。
+5. 最后对照 [Coding Agent 工程案例](/docs/cases/coding-agent)，把产品体验拆回通用工作流。
 
 ## 参考来源
 
 - [Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code/overview)：Claude Code 产品和工具能力的官方来源。
 - [OpenAI Codex documentation](https://developers.openai.com/codex/)：Codex CLI、云端任务和产品入口的官方来源。
 - [Cursor documentation](https://cursor.com/docs)：Cursor Agent、Rules 和 MCP 能力的官方来源。
+- [Gemini CLI documentation](https://geminicli.com/docs/)：Google 官方终端 Agent。
+- [Qwen Code repository](https://github.com/QwenLM/qwen-code)：通义开源编码 Agent。
+- [AGENTS.md](https://agents.md/)：跨工具项目指令。
 - [Open SWE repository](https://github.com/langchain-ai/open-swe)：异步云端 coding agent 的开源参考。

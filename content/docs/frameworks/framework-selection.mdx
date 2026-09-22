@@ -10,6 +10,8 @@ description: 按状态、工具、工作流、多 Agent、持久化、评测和�
 - 比较维度：核心抽象、状态管理、工具系统、工作流、多 Agent、持久化、评测、部署、生态。
 - Python 生态：LangGraph、AutoGen、CrewAI、LlamaIndex、Haystack、Semantic Kernel。
 - TypeScript 生态：Mastra、Vercel AI SDK、OpenAI Agents SDK 的 JS/TS 使用方式。
+- 应用平台：Dify 这类画布 + RAG + Agent 控制台，和代码框架分开评估。
+- Google 生态：Google ADK（Python / TS / Go / Java）与 Vertex / Gemini 部署。
 - 产品集成：streaming UI、server actions、API routes、任务状态、trace 展示。
 - 迁移成本：框架绑定、工具 schema 复用、状态存储抽象。
 
@@ -32,14 +34,19 @@ description: 按状态、工具、工作流、多 Agent、持久化、评测和�
 flowchart TD
   A[你的任务需要多步控制流吗?] -->|是| B{需要强状态和恢复?}
   A -->|否| C{主要是 Web 产品流式交互?}
-  B -->|是| D[优先 LangGraph 或 Mastra workflow]
+  B -->|是| D[优先 LangGraph、Mastra workflow 或 Google ADK]
   B -->|否| E{需要多角色协作?}
   E -->|是| F[考虑 AutoGen / CrewAI / Agents SDK handoff]
   E -->|否| G[简单工具调用 SDK 足够]
   C -->|是| H[优先 Vercel AI SDK 或产品后端 SDK]
   C -->|否| I{需要官方 agent/tool/trace 抽象?}
   I -->|是| J[OpenAI Agents SDK]
-  I -->|否| K[先用模型 SDK + 自己的状态机]
+  I -->|否| K{要拖拽应用平台和知识库?}
+  K -->|是| L[Dify]
+  K -->|否| M[先用模型 SDK + 自己的状态机]
+  D --> N{绑定 Gemini / Vertex?}
+  N -->|是| O[Google ADK]
+  N -->|否| P[LangGraph 或 Mastra]
 ```
 
 ## 框架对比
@@ -52,6 +59,8 @@ flowchart TD
 | CrewAI | Python | role/task/crew/process 的快速多角色任务组织 | 角色描述不能替代验证和状态管理 |
 | OpenAI Agents SDK | Python / JS，OpenAI 生态 | agent、tool、handoff、guardrail、trace 的统一抽象 | 与具体模型/provider 绑定度要评估 |
 | Vercel AI SDK | TypeScript，Web / React | streaming UI、tool calling、structured output、Next.js 集成 | 不是完整工作流引擎，需要配状态和评测 |
+| Google ADK | Python 为主，另有 TS / Go / Java | Gemini / Vertex 部署、Workflow + HITL + 评测 UI | 和 Google 云绑定度要评估，钉版本测 resume |
+| Dify | 应用平台，可自托管 | 画布工作流、RAG、Agent、BaaS API | 许可证有额外条件；不替代精细状态机 |
 
 ## 避免框架绑定
 
@@ -80,3 +89,5 @@ flowchart TD
 - [CrewAI Documentation](https://docs.crewai.com/)
 - [OpenAI Agents SDK Documentation](https://openai.github.io/openai-agents-python/)
 - [Vercel AI SDK Documentation](https://ai-sdk.dev/docs/introduction)
+- [Google ADK Documentation](https://google.github.io/adk-docs/)
+- [Dify Documentation](https://docs.dify.ai)

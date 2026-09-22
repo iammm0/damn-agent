@@ -8,6 +8,8 @@
     "autogen",
     "crewai",
     "openai-agents-sdk",
-    "vercel-ai-sdk"
+    "vercel-ai-sdk",
+    "google-adk",
+    "dify"
   ]
 }

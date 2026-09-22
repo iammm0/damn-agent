@@ -4,6 +4,8 @@
     "index",
     "claude-code",
     "codex",
-    "cursor"
+    "cursor",
+    "gemini-cli",
+    "qwen-code"
   ]
 }

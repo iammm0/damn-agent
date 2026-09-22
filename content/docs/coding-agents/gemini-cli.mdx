@@ -1,0 +1,74 @@
+---
+title: Gemini CLI
+description: Google 官方开源终端编码 Agent 的入口、认证路径、GEMINI.md 与额度边界。
+---
+
+Gemini CLI 是 Google 开源的终端编码 Agent，把 Gemini 模型、内置工具和 MCP 接到命令行。它属于厂商官方 CLI，和 Claude Code、Codex CLI 同类；开源实现在 [`google-gemini/gemini-cli`](https://github.com/google-gemini/gemini-cli)。
+
+## 基础信息
+
+| 字段 | 信息 |
+| --- | --- |
+| 最近核验 | 2026-09-22 |
+| 厂商 | Google |
+| GitHub 快照 | 约 107k stars（[google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli)） |
+| 官方文档 | [geminicli.com/docs](https://geminicli.com/docs/) |
+| npm | `@google/gemini-cli` |
+| 许可证 | Apache-2.0 |
+| 项目约定文件 | `GEMINI.md`（可用设置改为读取 `AGENTS.md`） |
+
+## 一句话定位
+
+Gemini CLI 适合作为「Google 官方终端 Agent」样本：认证路径决定额度，内置 Search / 文件 / Shell / MCP，仓库规则默认走 `GEMINI.md`。
+
+## 产品形态
+
+- **交互 CLI**：在当前目录运行 `gemini`。
+- **Headless**：`gemini -p "..."`，可输出 JSON 或 `stream-json`。
+- **GitHub Action**：PR review、issue triage、`@gemini-cli` 点名。
+- **扩展**：MCP server 写在 `~/.gemini/settings.json`。
+- **Checkpoint**：保存和恢复长会话。
+
+## 认证与额度
+
+官方 README（2026-09-22 核验）列出三条路径，额度以当前文档为准，不要把 GitHub 星标理解成「一定能免费用」：
+
+| 路径 | 官方描述的适用对象 | 需要核对 |
+| --- | --- | --- |
+| Google 账号 OAuth | 个人开发者和持有 Gemini Code Assist 许可的用户 | 免费档数字随产品页变化 |
+| Gemini API Key | 需要选模型和按量计费的开发者 | AI Studio 配额与计费 |
+| Vertex AI | 企业和生产负载 | GCP 项目、合规和更高限额 |
+
+来源：[Gemini CLI README](https://github.com/google-gemini/gemini-cli)；[Authentication](https://www.geminicli.com/docs/get-started/authentication)。
+
+## 值得关注的工程点
+
+| 主题 | 为什么重要 |
+| --- | --- |
+| 认证分叉 | 同一二进制，能力和配额完全不同 |
+| 内置工具 | Search grounding、文件、Shell、web fetch |
+| `GEMINI.md` | 项目级行为；跨工具场景应同时维护 `AGENTS.md` |
+| Trusted folders | 按目录控制执行策略 |
+| Sandbox | 官方单独提供沙箱与安全文档 |
+
+## 最小运行路径
+
+```bash
+npm install -g @google/gemini-cli
+gemini
+```
+
+或 `npx @google/gemini-cli`。进入后按提示选择认证方式。
+
+## 使用边界
+
+- 写进教程的「免费 60 RPM / 1000 次/天」以当时官方文档为准，发布前应复核。
+- 企业路径要设 `GOOGLE_CLOUD_PROJECT`，不能假设个人 OAuth 能用于公司仓库。
+- 与 Qwen Code 的关系：Qwen Code 声明曾基于 Gemini CLI v0.8.2，从自身 v0.1 起独立演进。详见 [Qwen Code](/docs/coding-agents/qwen-code)。
+
+## 官方来源
+
+- [google-gemini/gemini-cli](https://github.com/google-gemini/gemini-cli)
+- [Gemini CLI Docs](https://geminicli.com/docs/)
+- [AGENTS.md](https://agents.md/)
+- [Qwen Code](/docs/coding-agents/qwen-code)

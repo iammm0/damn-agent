@@ -1,0 +1,67 @@
+---
+title: Google ADK
+description: Google 代码优先的 Agent Development Kit：Agent、Workflow、HITL、评测与 A2A。
+---
+
+Agent Development Kit（ADK）是 Google 的开源、代码优先 Agent 框架。当前主线是 ADK 2.0（Python 包 `google-adk`），另有 Java、Kotlin、Go、TypeScript 实现。它对 Gemini 优化，但官方称模型无关、部署无关。
+
+## 适合场景
+
+- 团队已在 Google Cloud / Gemini，需要把 Agent 部署到 Cloud Run 或 Vertex AI Agent Engine。
+- 既要 LLM 推理，又要确定性工作流（路由、扇出、循环、重试、HITL）。
+- 需要把 Agent 评测、Web 调试 UI 和代码仓库放在同一套工具里。
+- 要和其他厂商 Agent 用 A2A 互操作，同时用 MCP 接工具。
+
+## 心智模型
+
+ADK 应用主要由两类对象组成：
+
+- **Agent**：指令、工具、模型行为。
+- **Workflow**：图执行引擎，把 Agent 和任务节点连成可恢复的流。
+
+```python
+from google.adk import Agent, Workflow
+
+generate_fruit_agent = Agent(
+    name="generate_fruit_agent",
+    instruction="Return the name of a random fruit. Return only the name.",
+)
+
+generate_benefit_agent = Agent(
+    name="generate_benefit_agent",
+    instruction="Tell me a health benefit about the specified fruit.",
+)
+
+root_agent = Workflow(
+    name="root_agent",
+    edges=[("START", generate_fruit_agent, generate_benefit_agent)],
+)
+```
+
+本地：`adk run path/to/my_agent` 或 `adk web path/to/agents_dir`。来源：[google/adk-python README](https://github.com/google/adk-python)。
+
+## 工程判断
+
+| 需求 | 更贴近 |
+| --- | --- |
+| 精细状态图、多云、LangChain 生态 | [LangGraph](/docs/frameworks/langgraph) |
+| Gemini + Vertex + 官方部署命令 | ADK |
+| 拖拽应用、知识库、运营改流程 | [Dify](/docs/frameworks/dify) |
+| Web 流式 UI | [Vercel AI SDK](/docs/frameworks/vercel-ai-sdk) |
+
+ADK 2.x 的 Workflow Runtime 提供 HITL、Task API（Agent 间委托）和把 ADK Agent 当 MCP server 的能力。版本间恢复语义可能变化，生产应钉版本并回归测试 resume / A2A HITL。
+
+## 注意事项
+
+- `pip install google-adk` 需要 Python 3.10+；官方建议配合对应版本的 constraints 文件，避免传递依赖漂移。
+- 「深度集成 Google」是优势也是迁移成本：工具和部署示例会偏向 Vertex。
+- Agent Config 允许少写代码，但不等于可以跳过权限和评测。
+- 与 [A2A](/docs/concepts/multi-agent) 互补：ADK 负责把 Agent 做出来，A2A 负责和别人的 Agent 说话。
+
+## 参考来源
+
+- [google/adk-python](https://github.com/google/adk-python)
+- [ADK Docs](https://google.github.io/adk-docs/)
+- [A2A Protocol](https://a2a-protocol.org/latest/)
+- [LangGraph](/docs/frameworks/langgraph)
+- [多 Agent 协作](/docs/concepts/multi-agent)

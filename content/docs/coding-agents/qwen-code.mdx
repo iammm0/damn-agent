@@ -1,0 +1,63 @@
+---
+title: Qwen Code
+description: 通义开源的多协议终端编码 Agent，以及它与 Gemini CLI 的分叉关系。
+---
+
+Qwen Code 是阿里云通义团队维护的开源编码 Agent，入口覆盖终端、桌面、Web、IDE 和即时通讯。官方 README 写明：项目最初基于 [Google Gemini CLI](https://github.com/google-gemini/gemini-cli) v0.8.2；从 Qwen Code v0.1 起停止同步上游，按多协议、多平台方向独立开发。
+
+## 基础信息
+
+| 字段 | 信息 |
+| --- | --- |
+| 最近核验 | 2026-09-22 |
+| 厂商 | 阿里云通义 / QwenLM |
+| GitHub 快照 | 约 28k stars（[QwenLM/qwen-code](https://github.com/QwenLM/qwen-code)） |
+| 官方文档 | [qwen-code-docs](https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/) |
+| npm | `@qwen-code/qwen-code` |
+| 运行要求 | Node.js 22+ |
+| 许可证 | 以仓库 `LICENSE` 徽章为准，写作前复核文件 |
+
+## 一句话定位
+
+Qwen Code 适合中文开发者观察「从 Gemini CLI 分支出去的官方编码 Agent」如何补上多协议模型、IM 渠道和桌面/Web 入口，而不是把它写成又一个匿名 fork。
+
+## 产品形态
+
+- **终端**：项目目录运行 `qwen`，`/auth` 配置供应商。
+- **桌面**：GitHub `desktop-latest` release。
+- **Web**：`qwen serve --open`（实验性）。
+- **编辑器**：VS Code、Zed、JetBrains。
+- **渠道**：Telegram、钉钉、微信、飞书，`qwen channel start`。
+- **Headless / SDK**：`qwen -p`，以及 TypeScript / Python / Java SDK。
+
+## 值得关注的工程点
+
+| 主题 | 为什么重要 |
+| --- | --- |
+| 多协议 | 同时接 OpenAI、Anthropic、Gemini、Qwen 以及 Ollama / vLLM |
+| 与上游切割 | v0.8.2 同源，v0.1 后独立；不能再当 Gemini CLI 的同步 fork |
+| Agent 能力面 | SubAgents、Auto-Memory、MCP、Plan Mode、Sandbox、Git worktree |
+| IM 渠道 | 把编码 Agent 接到国内常用消息软件，权限模型必须单列 |
+| 评测表 | README 给出 SWE-bench Verified 上多版本分数，可当「厂商如何报 harness 成绩」的样本 |
+
+## 最小运行路径
+
+```bash
+curl -fsSL https://qwen-code-assets.oss-cn-hangzhou.aliyuncs.com/installation/install-qwen-standalone.sh | bash
+cd /path/to/your-project
+qwen
+```
+
+会话内执行 `/auth`。也可用 `npm install -g @qwen-code/qwen-code@latest`。
+
+## 使用边界
+
+- 「和 Claude Code 功能对齐」是官方对比表，不是第三方评测结论。
+- 渠道和 Computer Use 会扩大账号与桌面风险。
+- 需要 Google 官方路径时，仍应读 [Gemini CLI](/docs/coding-agents/gemini-cli)，不要假设 Qwen Code 行为一致。
+
+## 官方来源
+
+- [QwenLM/qwen-code](https://github.com/QwenLM/qwen-code)
+- [Qwen Code Auth](https://qwenlm.github.io/qwen-code-docs/en/users/configuration/auth/)
+- [Gemini CLI](/docs/coding-agents/gemini-cli)
