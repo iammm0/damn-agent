@@ -117,6 +117,10 @@ Agent 生产化需要 Trace、Metrics、Logs 三层覆盖。Session 的 append-o
 
 当前仍是 developer preview，官方明确会有破坏性变更。适合学架构，不适合当作稳定生产运行时。
 
+## 开源对照：Pi
+
+[Pi](/docs/open-source-agents/pi) 是更小的对照样本。它把 harness 收成可读的 TypeScript 包（`pi-ai`、`pi-agent-core`、`pi-coding-agent`），默认工具只有 `read` / `write` / `edit` / `bash`，Plan、子 Agent、MCP 和权限弹窗都留给扩展。JSONL session 可分支、可 compaction，SDK 模式被 [OpenClaw](/docs/open-source-agents/openclaw) 直接嵌入。社区 Go 移植见 [pi-go](/docs/open-source-agents/pi-go)，不是官方上游。来源：[pi.dev](https://pi.dev)；[earendil-works/pi](https://github.com/earendil-works/pi)。
+
 ## 最小落地清单
 
 1. 先做 append-only Session，而不是只保留最后一轮消息。
@@ -133,3 +137,5 @@ Agent 生产化需要 Trace、Metrics、Logs 三层覆盖。Session 的 append-o
 - [下载《Demystifying Claude Code v1.8》](/resources/books/demystifying-claude-code-v1.8.pdf)
 - [下载《智能体设计模式》](/resources/books/agentic-design-patterns-chinese.pdf)
 - [DeepSeek Harness](/docs/open-source-agents/deepseek-harness)：开源插件化 harness 对照。
+- [Pi](/docs/open-source-agents/pi)：最小终端 harness 对照。
+- [pi-go](/docs/open-source-agents/pi-go)：Pi 的社区 Go 移植，不是官方上游。

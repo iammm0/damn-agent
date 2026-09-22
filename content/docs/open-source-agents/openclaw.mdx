@@ -30,7 +30,7 @@ OpenClaw 适合被当成“个人助理产品化样本”来学习：它关心�
 - Gateway 作为控制面：统一承载 sessions、channels、tools 和 events，避免每个渠道各自实现一套 Agent 流程。
 - 多渠道入口：README 中列出 Discord、iMessage、Slack、Teams、Telegram、WhatsApp 等 20+ 渠道，以及 macOS、iOS、Android、Windows、Linux 原生应用。
 - 技能发行网络：官方把新能力优先放到 [plugin SDK](https://docs.openclaw.ai/plugins/building-plugins) 和 [ClawHub](https://clawhub.ai)，适合观察“助理产品如何把扩展从核心仓库拆出去”。
-- Harness 可替换：README 把 Claude、Codex、本地模型描述为可替换插件，Gateway 本身不绑定单一模型厂商。
+- Harness 可替换：README 把 Claude、Codex、本地模型描述为可替换插件，Gateway 本身不绑定单一模型厂商。[Pi](/docs/open-source-agents/pi) 官方文档把 OpenClaw 列为 SDK 嵌入样本，适合对照 Gateway 如何消费最小 harness，而不是把 `pi` CLI 当成又一个渠道。
 - Onboarding 和 doctor：`openclaw onboard --install-daemon` 配置 gateway、workspace、channels 和 skills；`openclaw dashboard` 打开 Control UI。
 - DM 安全默认值：把外部私信视为不可信输入，未知发送者默认 pairing，用 `openclaw pairing approve` 放行。
 - Sandbox 边界：主会话工具默认跑在 host 上，除非显式配置 sandbox；远程暴露 Gateway 前必须读 security / exposure runbook。
@@ -116,3 +116,4 @@ OpenClaw 的价值在于把个人助理的入口统一到 Gateway：不同消息
 - [OpenClaw Foundation](https://openclaw.org)
 - [Hermes Agent](/docs/open-source-agents/hermes-agent)：自进化对照；官方提供 `hermes claw migrate`
 - [nanobot](/docs/open-source-agents/nanobot)：轻量自托管对照
+- [Pi](/docs/open-source-agents/pi)：Pi 官方文档引用的 SDK 嵌入样本
